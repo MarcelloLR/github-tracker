@@ -1,0 +1,70 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.md {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.secondary {
+  background: var(--card);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--card-hover);
+}
+
+.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-fg);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--card-hover);
+  color: var(--foreground);
+}
+
+.danger {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+  color: var(--danger);
+}
+.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}

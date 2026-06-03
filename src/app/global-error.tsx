@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import "./globals.css";
 
 /**
  * Root error boundary. This REPLACES the root layout when it renders, so it
  * must provide its own <html>/<body>. The <Toaster/> lives in the root layout
- * (which is gone here), so we do NOT use `toast` — styling is inline and
- * self-contained for the same reason.
+ * (which is gone here), so we do NOT use `toast`. We import globals.css so the
+ * design tokens (var(--background) etc.) resolve; fonts fall back to the stack
+ * in globals.css since the next/font className isn't applied here.
  */
 export default function GlobalError({
   error,
@@ -23,11 +25,6 @@ export default function GlobalError({
     <html lang="en">
       <body
         style={{
-          margin: 0,
-          fontFamily:
-            "ui-sans-serif, system-ui, -apple-system, sans-serif",
-          lineHeight: 1.5,
-          colorScheme: "light dark",
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",
@@ -37,17 +34,25 @@ export default function GlobalError({
       >
         <div
           style={{
-            border: "1px solid color-mix(in srgb, currentColor 18%, transparent)",
-            borderRadius: 10,
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
             padding: "1.5rem 1.75rem",
             maxWidth: "32rem",
             width: "100%",
           }}
         >
-          <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>
+          <h1
+            style={{
+              margin: "0 0 0.5rem",
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+            }}
+          >
             Something went wrong
           </h1>
-          <p style={{ margin: "0 0 1rem", opacity: 0.8 }}>
+          <p style={{ margin: "0 0 1rem", color: "var(--muted-fg)" }}>
             A critical error occurred and the page could not be displayed.
             Please try again.
           </p>
@@ -55,9 +60,10 @@ export default function GlobalError({
             <p
               style={{
                 margin: "0 0 1rem",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                fontFamily:
+                  "var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)",
                 fontSize: "0.8rem",
-                opacity: 0.6,
+                color: "var(--faint-fg)",
                 wordBreak: "break-all",
               }}
             >
@@ -68,13 +74,13 @@ export default function GlobalError({
             type="button"
             onClick={() => reset()}
             style={{
-              padding: "0.45rem 0.9rem",
-              border:
-                "1px solid color-mix(in srgb, currentColor 30%, transparent)",
-              borderRadius: 6,
-              background: "color-mix(in srgb, currentColor 8%, transparent)",
+              padding: "0.5rem 0.9rem",
+              border: "1px solid var(--border-strong)",
+              borderRadius: "var(--radius)",
+              background: "var(--card)",
               color: "inherit",
               font: "inherit",
+              fontWeight: 500,
               cursor: "pointer",
             }}
           >
