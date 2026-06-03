@@ -1,4 +1,4 @@
-import type { Job } from "bullmq";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
 import { computeMetrics, type ContributionLike } from "@/lib/metrics/compute";
 import { computeStreaks } from "@/lib/metrics/streaks";
@@ -27,7 +27,8 @@ const TOP_REPOS = 5;
  * throttles regeneration to material changes. PROFILE rows set userId.
  * See docs/SPEC.md.
  */
-export async function summaryProfile(job: Job): Promise<void> {
+export async function summaryProfile(jobCtx: JobContext): Promise<void> {
+  const { job, log } = jobCtx;
   const { userId } = job.data as { userId: string };
 
   const user = await prisma.user.findUnique({
@@ -72,7 +73,11 @@ export async function summaryProfile(job: Job): Promise<void> {
   const scope = user?.login ?? userId;
   const key = cacheKey("PROFILE", scope, sha);
 
-  if (await getCachedSummary(key)) return;
+  if (await getCachedSummary(key)) {
+    log.debug({ tier: "PROFILE", cacheHit: true }, "summary.cache_hit");
+    return;
+  }
+  log.debug({ tier: "PROFILE", cacheHit: false }, "summary.generating");
 
   const ctx: ProfileContext = {
     login: user?.login,

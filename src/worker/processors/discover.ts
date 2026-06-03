@@ -1,6 +1,7 @@
-import { DelayedError, type Job } from "bullmq";
+import { DelayedError } from "bullmq";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
-import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { getQueue, QUEUE_NAMES, withCorrelation } from "@/lib/queue";
 import { getUserToken } from "@/lib/github/token";
 import {
   fetchContributions,
@@ -24,20 +25,22 @@ const OVERLAP_MS = 24 * 60 * 60 * 1000; // 1 day
 // Stagger per-user discover jobs in the sweep so we don't hammer GitHub at once.
 const SWEEP_STAGGER_MS = 30 * 1000;
 
-export async function discover(job: Job): Promise<void> {
+export async function discover(ctx: JobContext): Promise<void> {
+  const { job } = ctx;
   const data = job.data as DiscoverData;
   if (data.sweep) {
-    await runSweep();
+    await runSweep(ctx);
     return;
   }
   if (!data.userId) {
     throw new Error("discover: job has neither sweep nor userId");
   }
-  await runUserDiscover(job, data.userId);
+  await runUserDiscover(ctx, data.userId);
 }
 
 /** Fan out one per-user discover job per active user, staggered. */
-async function runSweep(): Promise<void> {
+async function runSweep(ctx: JobContext): Promise<void> {
+  const { log, correlationId } = ctx;
   // Active = has a linked GitHub account (and therefore a usable token).
   const accounts = await prisma.account.findMany({
     where: { provider: "github" },
@@ -50,15 +53,17 @@ async function runSweep(): Promise<void> {
   for (const { userId } of accounts) {
     await queue.add(
       "user",
-      { userId },
+      withCorrelation({ userId }, correlationId),
       { delay: i * SWEEP_STAGGER_MS, jobId: `discover-user-${userId}-${Date.now()}` },
     );
     i++;
   }
+  log.info({ users: accounts.length }, "discover.sweep.fanned_out");
 }
 
 /** Run discovery for a single user. */
-async function runUserDiscover(job: Job, userId: string): Promise<void> {
+async function runUserDiscover(ctx: JobContext, userId: string): Promise<void> {
+  const { job, log, correlationId } = ctx;
   // Ensure a SyncState row exists (recordRateLimit + rateLimitDelayMs need it),
   // and mark RUNNING.
   const state = await prisma.syncState.upsert({
@@ -67,97 +72,94 @@ async function runUserDiscover(job: Job, userId: string): Promise<void> {
     update: { status: "RUNNING", lastError: null },
   });
 
-  try {
-    const token = await getUserToken(userId);
-    const client = githubGraphql(token);
+  // Terminal failure recording (SyncState ERROR/lastError) is owned by runJob;
+  // a thrown DelayedError is the deliberate rate-limit re-queue and propagates
+  // up to runJob, which passes it through untouched.
+  const token = await getUserToken(userId);
+  const client = githubGraphql(token);
 
-    // Respect the rate-limit gate before issuing calls.
-    const delay = await rateLimitDelayMs(userId);
-    if (delay > 0) {
+  // Respect the rate-limit gate before issuing calls.
+  const delay = await rateLimitDelayMs(userId);
+  if (delay > 0) {
+    await prisma.syncState.update({ where: { userId }, data: { status: "QUEUED" } });
+    await job.moveToDelayed(Date.now() + delay, job.token);
+    throw new DelayedError();
+  }
+
+  // Resolve the token owner's login (the user's stored login may be stale/null).
+  const viewer = await fetchViewer(client, userId);
+
+  // Sync window: first sync backfills BACKFILL_MONTHS; later syncs re-scan from
+  // the last incremental sync minus an overlap.
+  const now = new Date();
+  const lastIncrSyncAt = state.lastIncrSyncAt;
+  const isFirstSync = lastIncrSyncAt == null;
+  const from = lastIncrSyncAt
+    ? new Date(lastIncrSyncAt.getTime() - OVERLAP_MS)
+    : monthsAgo(now, BACKFILL_MONTHS);
+
+  const contributions = await fetchContributions(client, userId, {
+    login: viewer.login,
+    from: from.toISOString(),
+    to: now.toISOString(),
+  });
+
+  const collection = contributions.user?.contributionsCollection;
+  if (!collection) {
+    // No contributions data (e.g. login mismatch); finish cleanly.
+    await prisma.syncState.update({
+      where: { userId },
+      data: { status: "IDLE", lastIncrSyncAt: now, lastError: null },
+    });
+    log.info({ isFirstSync }, "discover.no_contributions");
+    return;
+  }
+
+  // Aggregate per-repo contribution counts across all four categories.
+  const counts = aggregateCounts(collection);
+  const syncRepoQueue = getQueue(QUEUE_NAMES.syncRepo);
+  log.debug({ repos: counts.size, isFirstSync }, "discover.repos_found");
+
+  let enqueued = 0;
+  for (const [nameWithOwner, contributionCount] of counts) {
+    // Re-check the gate between repos; bail to delayed if we dipped below floor.
+    const interDelay = await rateLimitDelayMs(userId);
+    if (interDelay > 0) {
       await prisma.syncState.update({ where: { userId }, data: { status: "QUEUED" } });
-      await job.moveToDelayed(Date.now() + delay, job.token);
+      await job.moveToDelayed(Date.now() + interDelay, job.token);
       throw new DelayedError();
     }
 
-    // Resolve the token owner's login (the user's stored login may be stale/null).
-    const viewer = await fetchViewer(client, userId);
+    const [owner, name] = nameWithOwner.split("/");
+    if (!owner || !name) continue;
 
-    // Sync window: first sync backfills BACKFILL_MONTHS; later syncs re-scan from
-    // the last incremental sync minus an overlap.
-    const now = new Date();
-    const lastIncrSyncAt = state.lastIncrSyncAt;
-    const isFirstSync = lastIncrSyncAt == null;
-    const from = lastIncrSyncAt
-      ? new Date(lastIncrSyncAt.getTime() - OVERLAP_MS)
-      : monthsAgo(now, BACKFILL_MONTHS);
+    const meta = await fetchRepoMetadata(client, userId, owner, name);
+    if (!meta) continue; // repo deleted / inaccessible
 
-    const contributions = await fetchContributions(client, userId, {
-      login: viewer.login,
-      from: from.toISOString(),
-      to: now.toISOString(),
-    });
+    const { repository, changed } = await upsertRepoAndLinks(userId, meta, contributionCount);
 
-    const collection = contributions.user?.contributionsCollection;
-    if (!collection) {
-      // No contributions data (e.g. login mismatch); finish cleanly.
-      await prisma.syncState.update({
-        where: { userId },
-        data: { status: "IDLE", lastIncrSyncAt: now, lastError: null },
-      });
-      return;
+    // Skip-untouched: only enqueue a per-repo sync when pushedAt / counts moved
+    // (or on the very first sync where there is nothing stored yet).
+    if (changed || isFirstSync) {
+      await syncRepoQueue.add(
+        "sync",
+        withCorrelation({ userId, repositoryId: repository.id }, correlationId),
+        { jobId: `sync-repo-${userId}-${repository.id}-${Date.now()}` },
+      );
+      enqueued++;
     }
-
-    // Aggregate per-repo contribution counts across all four categories.
-    const counts = aggregateCounts(collection);
-    const syncRepoQueue = getQueue(QUEUE_NAMES.syncRepo);
-
-    for (const [nameWithOwner, contributionCount] of counts) {
-      // Re-check the gate between repos; bail to delayed if we dipped below floor.
-      const interDelay = await rateLimitDelayMs(userId);
-      if (interDelay > 0) {
-        await prisma.syncState.update({ where: { userId }, data: { status: "QUEUED" } });
-        await job.moveToDelayed(Date.now() + interDelay, job.token);
-        throw new DelayedError();
-      }
-
-      const [owner, name] = nameWithOwner.split("/");
-      if (!owner || !name) continue;
-
-      const meta = await fetchRepoMetadata(client, userId, owner, name);
-      if (!meta) continue; // repo deleted / inaccessible
-
-      const { repository, changed } = await upsertRepoAndLinks(userId, meta, contributionCount);
-
-      // Skip-untouched: only enqueue a per-repo sync when pushedAt / counts moved
-      // (or on the very first sync where there is nothing stored yet).
-      if (changed || isFirstSync) {
-        await syncRepoQueue.add(
-          "sync",
-          { userId, repositoryId: repository.id },
-          { jobId: `sync-repo-${userId}-${repository.id}-${Date.now()}` },
-        );
-      }
-    }
-
-    await prisma.syncState.update({
-      where: { userId },
-      data: {
-        status: "IDLE",
-        lastIncrSyncAt: now,
-        lastFullSyncAt: isFirstSync ? now : state.lastFullSyncAt,
-        lastError: null,
-      },
-    });
-  } catch (err) {
-    // A DelayedError means we deliberately re-queued for the rate-limit reset —
-    // not a failure. Leave status QUEUED and let BullMQ requeue.
-    if (err instanceof DelayedError) throw err;
-    await prisma.syncState.update({
-      where: { userId },
-      data: { status: "ERROR", lastError: errorMessage(err) },
-    });
-    throw err;
   }
+
+  await prisma.syncState.update({
+    where: { userId },
+    data: {
+      status: "IDLE",
+      lastIncrSyncAt: now,
+      lastFullSyncAt: isFirstSync ? now : state.lastFullSyncAt,
+      lastError: null,
+    },
+  });
+  log.info({ repos: counts.size, syncRepoEnqueued: enqueued, isFirstSync }, "discover.done");
 }
 
 /** Sum the four contribution categories into a per-repo total count. */
@@ -306,8 +308,4 @@ function monthsAgo(from: Date, months: number): Date {
   const d = new Date(from);
   d.setUTCMonth(d.getUTCMonth() - months);
   return d;
-}
-
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
 }
