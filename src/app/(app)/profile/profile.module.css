@@ -1,0 +1,31 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+}
+
+.highlights {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--muted-fg);
+  font-size: 0.9rem;
+}
+
+.highlights li {
+  line-height: 1.5;
+}

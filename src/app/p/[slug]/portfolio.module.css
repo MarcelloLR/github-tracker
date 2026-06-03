@@ -2,12 +2,15 @@
   margin-bottom: 2rem;
 }
 
-.header h1 {
-  margin-bottom: 0.25rem;
+.name {
+  margin: 0 0 0.25rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .subtle {
-  opacity: 0.7;
+  color: var(--muted-fg);
   margin: 0;
 }
 
@@ -15,34 +18,11 @@
   margin-bottom: 2rem;
 }
 
-.section h2 {
-  font-size: 1.05rem;
-  margin-bottom: 0.75rem;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 0.75rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.metric {
-  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  border-radius: 8px;
-  padding: 0.75rem 0.9rem;
-}
-
-.metricValue {
-  font-size: 1.4rem;
+.sectionTitle {
+  font-size: 0.95rem;
   font-weight: 600;
-}
-
-.metricLabel {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.85rem;
 }
 
 .langList,
@@ -69,21 +49,24 @@
 .bar {
   flex: 1;
   height: 8px;
-  border-radius: 4px;
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--elevated);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
 .barFill {
+  display: block;
   height: 100%;
-  background: color-mix(in srgb, currentColor 55%, transparent);
+  border-radius: var(--radius-pill);
 }
 
 .langPct {
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: var(--muted-fg);
   min-width: 3rem;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .repo {
@@ -91,25 +74,25 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.repoMain {
+  min-width: 0;
 }
 
 .repoName {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .repoMeta {
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: var(--muted-fg);
   white-space: nowrap;
-}
-
-.summary {
-  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  border-radius: 8px;
-  padding: 0.5rem 1.25rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary :is(h1, h2, h3) {
@@ -117,6 +100,6 @@
 }
 
 .empty {
-  opacity: 0.6;
+  color: var(--muted-fg);
   font-size: 0.9rem;
 }

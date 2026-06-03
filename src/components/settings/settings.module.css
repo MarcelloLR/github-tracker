@@ -1,19 +1,22 @@
 .section {
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .section h2 {
   margin-top: 0;
   margin-bottom: 0.25rem;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .hint {
   margin-top: 0;
-  opacity: 0.7;
+  color: var(--muted-fg);
   font-size: 0.85rem;
 }
 
@@ -27,47 +30,30 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .field label {
   font-size: 0.8rem;
-  opacity: 0.8;
+  color: var(--muted-fg);
 }
 
 .field select,
 .field input {
-  padding: 0.4rem 0.5rem;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 6px;
-  background: transparent;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--background);
   color: inherit;
   font: inherit;
+  font-size: 0.85rem;
   min-width: 7rem;
+  transition: border-color 0.15s ease;
 }
 
-.button {
-  padding: 0.45rem 0.9rem;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 6px;
-  background: color-mix(in srgb, currentColor 8%, transparent);
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.button:hover:not(:disabled) {
-  background: color-mix(in srgb, currentColor 16%, transparent);
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.danger {
-  border-color: color-mix(in srgb, crimson 50%, transparent);
-  color: crimson;
+.field select:hover,
+.field input:hover {
+  border-color: var(--faint-fg);
 }
 
 .list {
@@ -84,31 +70,33 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--elevated);
+  font-size: 0.9rem;
 }
 
 .empty {
-  opacity: 0.6;
+  color: var(--muted-fg);
   font-size: 0.9rem;
   margin: 0.75rem 0 0;
 }
 
 .status {
   font-size: 0.85rem;
-  opacity: 0.8;
+  color: var(--muted-fg);
   min-height: 1.2em;
 }
 
 .error {
-  color: crimson;
+  color: var(--danger);
 }
 
 .slugPreview {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: 0.85rem;
-  opacity: 0.85;
+  color: var(--muted-fg);
   word-break: break-all;
 }
 
@@ -116,4 +104,10 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.toggleRow input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
 }
