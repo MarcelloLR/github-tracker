@@ -1,0 +1,49 @@
+.prose {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.prose h2 {
+  font-size: 1.25rem;
+  margin: 1.2rem 0 0.5rem;
+}
+
+.prose h3 {
+  font-size: 1.1rem;
+  margin: 1rem 0 0.4rem;
+}
+
+.prose h4,
+.prose h5 {
+  font-size: 1rem;
+  margin: 0.8rem 0 0.3rem;
+}
+
+.prose p {
+  margin: 0.5rem 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+}
+
+.prose li {
+  margin: 0.2rem 0;
+}
+
+.prose blockquote {
+  margin: 0.6rem 0;
+  padding-left: 0.8rem;
+  border-left: 3px solid rgba(127, 127, 127, 0.4);
+  opacity: 0.85;
+}
+
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(127, 127, 127, 0.15);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
