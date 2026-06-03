@@ -1,0 +1,338 @@
+// Github Tracker (OSTrack) data model — see docs/SPEC.md.
+//
+// Invariant: all PER-USER data lives in Contribution / UserRepository /
+// UserOrganization / StatSnapshot. Shared GitHub entities (Repository,
+// Organization, RepoLanguage) and repo-tier AISummary rows are user-agnostic so
+// that two users contributing to the same repo share one codebase summary.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// NextAuth / Auth.js (Prisma adapter shape + a few GitHub-specific fields)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  // GitHub identity
+  githubId      Int?      @unique
+  login         String?   @unique
+  createdAt     DateTime  @default(now())
+
+  accounts      Account[]
+  sessions      Session[]
+  repositories  UserRepository[]
+  organizations UserOrganization[]
+  contributions Contribution[]
+  statSnapshots StatSnapshot[]
+  summaries     AISummary[]
+  goals         Goal[]
+  syncState     SyncState?
+  settings      UserSettings?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  // GitHub OAuth access token — ENCRYPTED at the app layer (lib/crypto.ts)
+  // before persisting; decrypted only in the auth/worker layer.
+  access_token      String? @db.Text
+  refresh_token     String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Shared GitHub entities (NOT per-user)
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id           String  @id @default(cuid())
+  githubNodeId String  @unique
+  login        String  @unique
+  name         String?
+  avatarUrl    String?
+  description  String?
+
+  repositories Repository[]
+  members      UserOrganization[]
+  summaries    AISummary[]
+}
+
+model Repository {
+  id             String    @id @default(cuid())
+  githubNodeId   String    @unique
+  owner          String
+  name           String
+  nameWithOwner  String    @unique
+  description    String?
+  isPrivate      Boolean   @default(false)
+  stargazers     Int       @default(0)
+  primaryLang    String?
+  topics         String[]
+  license        String?
+  defaultBranch  String?
+  headSha        String? // latest default-branch commit SHA — deep-dive cache key
+  readmeHash     String? // content hash of README — metadata-summary cache key
+  pushedAt       DateTime?
+  organizationId String?
+
+  organization  Organization?    @relation(fields: [organizationId], references: [id])
+  languages     RepoLanguage[]
+  userLinks     UserRepository[]
+  contributions Contribution[]
+  summaries     AISummary[]
+
+  @@index([organizationId])
+}
+
+model RepoLanguage {
+  id           String @id @default(cuid())
+  repositoryId String
+  language     String
+  bytes        Int
+
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, language])
+}
+
+// ---------------------------------------------------------------------------
+// Per-user <-> entity links (isolation + incremental-sync cursors)
+// ---------------------------------------------------------------------------
+
+model UserRepository {
+  id                 String    @id @default(cuid())
+  userId             String
+  repositoryId       String
+  firstContributedAt DateTime?
+  lastContributedAt  DateTime?
+  lastSyncedAt       DateTime?
+  // { prCursor, issueCursor, reviewCursor, commitSince, etags: {...} }
+  syncCursor         Json?
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repositoryId])
+  @@index([userId])
+}
+
+model UserOrganization {
+  id             String @id @default(cuid())
+  userId         String
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Contribution facts — one row per PR / review / issue / commit-day
+// ---------------------------------------------------------------------------
+
+enum ContributionType {
+  PR_OPENED
+  PR_MERGED
+  REVIEW
+  ISSUE_OPENED
+  COMMIT
+}
+
+enum ContributionState {
+  OPEN
+  MERGED
+  CLOSED
+}
+
+model Contribution {
+  id           String             @id @default(cuid())
+  userId       String
+  repositoryId String
+  githubNodeId String? // PR/issue/review node id (null for commit-day aggregates)
+  type         ContributionType
+  state        ContributionState?
+  title        String?
+  number       Int?
+  additions    Int?
+  deletions    Int?
+  reviewCount  Int?
+  createdAt    DateTime
+  mergedAt     DateTime?
+  closedAt     DateTime?
+  cycleTimeSec Int? // derived: mergedAt - createdAt; persisted for fast percentiles
+  occurredOn   DateTime // date bucket (UTC) used for timelines
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, githubNodeId])
+  @@index([userId, occurredOn])
+  @@index([userId, repositoryId, type])
+}
+
+// ---------------------------------------------------------------------------
+// Pre-rolled daily stats (global / per-repo / per-org) for charts
+// ---------------------------------------------------------------------------
+
+enum StatScope {
+  GLOBAL
+  REPO
+  ORG
+}
+
+model StatSnapshot {
+  id           String    @id @default(cuid())
+  userId       String
+  scope        StatScope
+  scopeId      String? // repositoryId or organizationId; null for GLOBAL
+  date         DateTime // day bucket (UTC midnight)
+  prsOpened    Int       @default(0)
+  prsMerged    Int       @default(0)
+  reviews      Int       @default(0)
+  issuesOpened Int       @default(0)
+  commits      Int       @default(0)
+  additions    Int       @default(0)
+  deletions    Int       @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, scopeId, date])
+  @@index([userId, scope, scopeId, date])
+}
+
+// ---------------------------------------------------------------------------
+// AI summaries (Claude)
+// ---------------------------------------------------------------------------
+
+enum SummaryTier {
+  METADATA
+  DEEP_DIVE
+  PROFILE
+}
+
+model AISummary {
+  id             String       @id @default(cuid())
+  tier           SummaryTier
+  userId         String? // set for PROFILE; null for shared repo-tier summaries
+  repositoryId   String?
+  organizationId String?
+  cacheKey       String       @unique // sha256(tier | nameWithOwner | sha | promptVersion)
+  model          String
+  inputHash      String
+  summaryMd      String       @db.Text
+  highlights     Json? // structured bullets for UI cards
+  inputTokens    Int?
+  outputTokens   Int?
+  costUsd        Decimal?     @db.Decimal(10, 5)
+  promptVersion  Int          @default(1)
+  generatedAt    DateTime     @default(now())
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository   Repository?   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId, tier])
+  @@index([userId, tier])
+}
+
+// ---------------------------------------------------------------------------
+// Ops + product
+// ---------------------------------------------------------------------------
+
+enum SyncStatus {
+  IDLE
+  QUEUED
+  RUNNING
+  ERROR
+}
+
+model SyncState {
+  id             String     @id @default(cuid())
+  userId         String     @unique
+  status         SyncStatus @default(IDLE)
+  lastFullSyncAt DateTime?
+  lastIncrSyncAt DateTime?
+  rateRemaining  Int?
+  rateResetAt    DateTime?
+  lastError      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum GoalMetric {
+  PRS
+  REVIEWS
+  ISSUES
+  COMMITS
+}
+
+enum GoalPeriod {
+  WEEKLY
+  MONTHLY
+}
+
+model Goal {
+  id        String     @id @default(cuid())
+  userId    String
+  metric    GoalMetric
+  period    GoalPeriod
+  target    Int
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserSettings {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  syncIntervalHrs Int     @default(3)
+  deepDiveBudget  Int     @default(5) // monthly deep-dive cap
+  portfolioPublic Boolean @default(false)
+  publicSlug      String? @unique // for /p/[slug] portfolio export
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
