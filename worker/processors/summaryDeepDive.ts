@@ -65,9 +65,11 @@ export async function summaryDeepDive(job: Job): Promise<void> {
   const name = repo.name;
 
   // Full recursive tree at HEAD, then deterministic selection (no LLM).
-  const tree = (await fetchTree(octokit, owner, name, repo.headSha)) as TreeEntry[];
+  // fetchTree is ETag-aware; with no etag passed it always returns fresh data.
+  const treeResult = await fetchTree(octokit, owner, name, repo.headSha);
+  if (treeResult.notModified) return;
   const selected = selectFiles(
-    tree.filter((e): e is TreeEntry => Boolean(e.path && e.type && e.sha)),
+    treeResult.data.filter((e): e is TreeEntry => Boolean(e.path && e.type && e.sha)),
   );
 
   // Fetch each selected blob inline by SHA (base64), decode to text. Skip blobs
