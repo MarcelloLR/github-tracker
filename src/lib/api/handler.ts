@@ -25,7 +25,11 @@ type Segment<P> = { params: Promise<P> };
 
 export function withRoute<P = unknown>(
   handler: (ctx: RouteContext<P>) => Promise<Response> | Response,
-): (req: NextRequest, segment?: Segment<P>) => Promise<Response> {
+  // Note: `segment` is non-optional so the returned handler's second-arg type
+  // matches Next 15's generated `RouteContext` (an optional param would add
+  // `| undefined`, which the route typegen rejects). Next always passes the
+  // context at runtime; the body still guards defensively for params.
+): (req: NextRequest, segment: Segment<P>) => Promise<Response> {
   return async (req, segment) => {
     const requestId =
       req.headers.get("x-correlation-id") ?? req.headers.get("x-request-id") ?? randomUUID();
