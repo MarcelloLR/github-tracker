@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/ui";
 import styles from "./dashboard.module.css";
 
 export interface GoalProgress {
@@ -19,14 +20,14 @@ const METRIC_LABEL: Record<GoalProgress["metric"], string> = {
 export default function Goals({ goals }: { goals: GoalProgress[] }) {
   if (goals.length === 0) {
     return (
-      <div className={styles.empty}>
+      <EmptyState>
         No active goals yet. Set weekly or monthly targets in Settings.
-      </div>
+      </EmptyState>
     );
   }
 
   return (
-    <div className={styles.card}>
+    <div className={styles.goalList}>
       {goals.map((g) => {
         const pct = g.target > 0 ? Math.min(100, (g.current / g.target) * 100) : 0;
         const met = g.current >= g.target && g.target > 0;
@@ -35,9 +36,10 @@ export default function Goals({ goals }: { goals: GoalProgress[] }) {
           <div key={g.id} className={styles.goal}>
             <div className={styles.goalHeader}>
               <span>
-                {METRIC_LABEL[g.metric]} <span className={styles.muted}>{periodLabel}</span>
+                {METRIC_LABEL[g.metric]}{" "}
+                <span className={styles.goalPeriod}>{periodLabel}</span>
               </span>
-              <span className={met ? styles.goalMet : undefined}>
+              <span className={`${met ? styles.goalMet : ""} tnum`.trim()}>
                 {g.current} / {g.target}
                 {met ? " ✓" : ""}
               </span>

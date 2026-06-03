@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { HEATMAP_LEVELS } from "@/lib/chart";
 import styles from "./dashboard.module.css";
 
 export interface HeatmapDay {
@@ -11,7 +12,6 @@ export interface HeatmapDay {
 
 const CELL = 12;
 const GAP = 3;
-const LEVEL_COLORS = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -114,8 +114,7 @@ export default function CalendarHeatmap({
               x={m.x}
               y={10}
               fontSize={10}
-              fill="currentColor"
-              opacity={0.6}
+              fill="var(--faint-fg)"
             >
               {m.label}
             </text>
@@ -131,7 +130,7 @@ export default function CalendarHeatmap({
                   height={CELL}
                   rx={2}
                   ry={2}
-                  fill={LEVEL_COLORS[levelFor(c.count, max)]}
+                  fill={HEATMAP_LEVELS[levelFor(c.count, max)]}
                 >
                   <title>
                     {c.count} contribution{c.count === 1 ? "" : "s"} on {c.date}
@@ -145,7 +144,7 @@ export default function CalendarHeatmap({
       <div className={styles.heatmapLegend}>
         <span>{total} contributions</span>
         <span style={{ marginLeft: "auto" }}>Less</span>
-        {LEVEL_COLORS.map((color, i) => (
+        {HEATMAP_LEVELS.map((color, i) => (
           <span
             key={i}
             className={styles.legendSwatch}

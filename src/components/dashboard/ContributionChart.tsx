@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { CHART_THEME, CONTRIB_SERIES } from "@/lib/chart";
 
 export interface TrendPoint {
   /** ISO date (YYYY-MM-DD). */
@@ -19,28 +20,23 @@ export interface TrendPoint {
   commits: number;
 }
 
-const SERIES = [
-  { key: "commits", label: "Commits", color: "#8b949e" },
-  { key: "prs", label: "PRs", color: "#2da44e" },
-  { key: "reviews", label: "Reviews", color: "#8250df" },
-  { key: "issues", label: "Issues", color: "#bf8700" },
-] as const;
-
 /** Stacked area trend of weekly contribution counts (Recharts, client-only). */
 export default function ContributionChart({ data }: { data: TrendPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid strokeOpacity={0.12} vertical={false} />
+        <CartesianGrid stroke={CHART_THEME.grid} vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, opacity: 0.6 }}
+          tick={{ fontSize: 11, fill: CHART_THEME.axis }}
+          stroke={CHART_THEME.axisLine}
           tickLine={false}
           axisLine={false}
           minTickGap={32}
         />
         <YAxis
-          tick={{ fontSize: 11, opacity: 0.6 }}
+          tick={{ fontSize: 11, fill: CHART_THEME.axis }}
+          stroke={CHART_THEME.axisLine}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}
@@ -50,10 +46,14 @@ export default function ContributionChart({ data }: { data: TrendPoint[] }) {
           contentStyle={{
             fontSize: 12,
             borderRadius: 8,
-            border: "1px solid rgba(128,128,128,0.3)",
+            background: CHART_THEME.tooltipBg,
+            border: `1px solid ${CHART_THEME.tooltipBorder}`,
+            color: CHART_THEME.tooltipText,
           }}
+          labelStyle={{ color: CHART_THEME.tooltipText }}
+          itemStyle={{ color: CHART_THEME.tooltipText }}
         />
-        {SERIES.map((s) => (
+        {CONTRIB_SERIES.map((s) => (
           <Area
             key={s.key}
             type="monotone"

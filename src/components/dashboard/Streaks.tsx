@@ -10,20 +10,18 @@ export default function Streaks({
 }) {
   const dayWord = (n: number) => (n === 1 ? "day" : "days");
   return (
-    <div className={styles.card}>
-      <div className={styles.statRow}>
-        <div className={styles.bigStat}>
-          <span className={styles.bigStatValue}>
-            {current} {dayWord(current)}
-          </span>
-          <span className={styles.bigStatLabel}>Current streak</span>
-        </div>
-        <div className={styles.bigStat}>
-          <span className={styles.bigStatValue}>
-            {longest} {dayWord(longest)}
-          </span>
-          <span className={styles.bigStatLabel}>Longest streak</span>
-        </div>
+    <div className={styles.statRow}>
+      <div className={styles.bigStat}>
+        <span className={`${styles.bigStatValue} tnum`}>
+          {current} {dayWord(current)}
+        </span>
+        <span className={styles.bigStatLabel}>Current streak</span>
+      </div>
+      <div className={styles.bigStat}>
+        <span className={`${styles.bigStatValue} tnum`}>
+          {longest} {dayWord(longest)}
+        </span>
+        <span className={styles.bigStatLabel}>Longest streak</span>
       </div>
     </div>
   );
