@@ -1,0 +1,40 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+}
+
+.value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+}
+
+.sub {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--faint-fg);
+  font-variant-numeric: tabular-nums;
+}

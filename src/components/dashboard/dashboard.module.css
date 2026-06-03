@@ -1,0 +1,306 @@
+/* Dashboard-specific styling. Surfaces/sections/metric cards come from the
+ * shared UI primitives (Panel, StatCard, PageHeader, EmptyState, Button); this
+ * file only styles the bits those primitives don't cover. All colors/borders
+ * resolve to design tokens. */
+
+/* Page layout ------------------------------------------------------------ */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pageEmpty {
+  margin-bottom: 1.25rem;
+}
+
+/* Two-column layout ------------------------------------------------------ */
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Streak big stats ------------------------------------------------------- */
+
+.statRow {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.bigStat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bigStatValue {
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.bigStatLabel {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+  margin-top: 0.3rem;
+}
+
+/* Goals ------------------------------------------------------------------ */
+
+.goalList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  gap: 1rem;
+}
+
+.goalPeriod {
+  color: var(--faint-fg);
+}
+
+.goalMet {
+  font-weight: 600;
+  color: var(--success);
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.progressFillMet {
+  background: var(--success);
+}
+
+/* Top repos / orgs lists ------------------------------------------------- */
+
+.topList {
+  list-style: none;
+  margin: -0.35rem 0;
+  padding: 0;
+}
+
+.topRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.topRow:last-child {
+  border-bottom: none;
+}
+
+.topLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.topLink:hover {
+  background: var(--card-hover);
+}
+
+.rowMain {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowName {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSub {
+  font-size: 0.78rem;
+  color: var(--faint-fg);
+}
+
+.rowCount {
+  font-weight: 600;
+  color: var(--muted-fg);
+  white-space: nowrap;
+}
+
+/* Two-column layout ------------------------------------------------------ */
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Streak pills ----------------------------------------------------------- */
+
+.statRow {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.bigStat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bigStatValue {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bigStatLabel {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+  margin-top: 0.25rem;
+}
+
+/* Refresh control -------------------------------------------------------- */
+
+.refreshBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.refreshStatus {
+  font-size: 0.82rem;
+  color: var(--muted-fg);
+}
+
+.refreshError {
+  font-size: 0.82rem;
+  color: var(--danger);
+}
+
+/* Calendar heatmap ------------------------------------------------------- */
+
+.heatmapWrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  color: var(--foreground);
+}
+
+.heatmapLegend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--muted-fg);
+  margin-top: 0.6rem;
+}
+
+.legendSwatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+/* Markdown (profile) ----------------------------------------------------- */
+
+.markdown {
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 1.2rem 0 0.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.markdown h1 {
+  font-size: 1.4rem;
+}
+
+.markdown h2 {
+  font-size: 1.2rem;
+}
+
+.markdown h3 {
+  font-size: 1.05rem;
+}
+
+.markdown p {
+  margin: 0.6rem 0;
+  color: var(--muted-fg);
+}
+
+.markdown ul {
+  margin: 0.6rem 0;
+  padding-left: 1.3rem;
+  color: var(--muted-fg);
+}
+
+.markdown li {
+  margin: 0.2rem 0;
+}
+
+.markdown strong {
+  color: var(--foreground);
+}
+
+.markdown code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.9em;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+}
+
+.highlights {
+  margin: 0.75rem 0 0;
+  padding-left: 1.3rem;
+}
+
+.highlights li {
+  margin: 0.3rem 0;
+}

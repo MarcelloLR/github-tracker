@@ -1,0 +1,66 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  max-width: 32rem;
+  width: 100%;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.message {
+  margin: 0 0 1rem;
+  color: var(--muted-fg);
+  line-height: 1.5;
+}
+
+.digest {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.8rem;
+  color: var(--faint-fg);
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.button:hover {
+  background: var(--card-hover);
+}
+
+.link {
+  font-size: 0.9rem;
+  color: var(--muted-fg);
+}
+
+.link:hover {
+  color: var(--foreground);
+}

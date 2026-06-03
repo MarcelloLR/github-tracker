@@ -28,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# dev script runtime (scripts/dev.sh logs + pidfiles)
+/.dev/
+
 # vercel
 .vercel
 

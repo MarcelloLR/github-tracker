@@ -1,0 +1,5 @@
+/*
+ * MetricCards now renders via the shared StatGrid/StatCard primitives
+ * (@/components/ui), so its tile styling lives there. This module is kept as a
+ * placeholder to avoid breaking any stale imports.
+ */

@@ -1,0 +1,113 @@
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.section h2 {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.hint {
+  margin-top: 0;
+  color: var(--muted-fg);
+  font-size: 0.85rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+}
+
+.field select,
+.field input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  min-width: 7rem;
+  transition: border-color 0.15s ease;
+}
+
+.field select:hover,
+.field input:hover {
+  border-color: var(--faint-fg);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--elevated);
+  font-size: 0.9rem;
+}
+
+.empty {
+  color: var(--muted-fg);
+  font-size: 0.9rem;
+  margin: 0.75rem 0 0;
+}
+
+.status {
+  font-size: 0.85rem;
+  color: var(--muted-fg);
+  min-height: 1.2em;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.slugPreview {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.85rem;
+  color: var(--muted-fg);
+  word-break: break-all;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.toggleRow input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}

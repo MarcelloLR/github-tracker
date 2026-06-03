@@ -1,0 +1,105 @@
+.header {
+  margin-bottom: 2rem;
+}
+
+.name {
+  margin: 0 0 0.25rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtle {
+  color: var(--muted-fg);
+  margin: 0;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.85rem;
+}
+
+.langList,
+.repoList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.langName {
+  min-width: 8rem;
+  font-size: 0.9rem;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+}
+
+.langPct {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+  min-width: 3rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.repo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.repoMain {
+  min-width: 0;
+}
+
+.repoName {
+  font-weight: 600;
+}
+
+.repoMeta {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary :is(h1, h2, h3) {
+  font-size: 1rem;
+}
+
+.empty {
+  color: var(--muted-fg);
+  font-size: 0.9rem;
+}

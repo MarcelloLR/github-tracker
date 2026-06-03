@@ -1,0 +1,144 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted-fg);
+  margin: 0;
+}
+
+.breadcrumb a {
+  color: var(--muted-fg);
+}
+
+.breadcrumb a:hover {
+  color: var(--foreground);
+}
+
+.sep {
+  color: var(--faint-fg);
+}
+
+.crumbCurrent {
+  color: var(--foreground);
+}
+
+.header {
+  margin: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.title a {
+  color: var(--foreground);
+}
+
+.title a:hover {
+  color: var(--accent);
+}
+
+.avatar {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.desc {
+  margin: 0.25rem 0 0.6rem;
+  color: var(--muted-fg);
+  font-size: 0.95rem;
+  max-width: 70ch;
+}
+
+.facts {
+  font-size: 0.85rem;
+  color: var(--muted-fg);
+  margin: 0;
+}
+
+.section {
+  margin: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.emptyWrap {
+  padding: 1.1rem 1.25rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--card-hover);
+}
+
+.table thead th {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-fg);
+  white-space: nowrap;
+}
+
+.repoLink {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.repoLink:hover {
+  color: var(--accent);
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.subNum {
+  color: var(--faint-fg);
+  font-size: 0.8em;
+}

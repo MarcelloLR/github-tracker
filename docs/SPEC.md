@@ -58,7 +58,7 @@ GraphQL v4 is primary (its limit is query-*cost*, not request count, and it coll
 - **Contribution facts:** `Contribution` — one row per PR/review/issue/commit-day. Fields: `type` (`PR_OPENED|PR_MERGED|REVIEW|ISSUE_OPENED|COMMIT`), `state`, `additions/deletions`, `reviewCount`, `createdAt/mergedAt/closedAt`, **`cycleTimeSec`** (persisted for fast percentiles), `occurredOn` (date bucket). Unique `(userId,type,githubNodeId)`; indexed `(userId,occurredOn)` and `(userId,repositoryId,type)`.
 - **Time-series rollups:** `StatSnapshot` — one narrow row per `(user, scope, scopeId, date)` at `scope ∈ {GLOBAL,REPO,ORG}` with daily `prsOpened/prsMerged/reviews/issuesOpened/commits/additions/deletions`. Charts = one indexed range scan; weekly/monthly roll up trivially.
 - **AI:** `AISummary` — `tier (METADATA|DEEP_DIVE|PROFILE)`, optional `userId`(profile)/`repositoryId`, **`cacheKey` unique**, `model`, `inputHash`, `summaryMd`, `highlights` JSON, token/cost fields, `promptVersion`, `generatedAt`. Repo-tier summaries are user-agnostic (`userId` null).
-- **Ops/product:** `SyncState` (status, rate remaining/reset, lastError), `Goal` (metric/period/target), `UserSettings` (`syncIntervalHrs`, `deepDiveBudget`, `portfolioPublic`, `publicSlug`).
+- **Ops/product:** `SyncState` (status, rate remaining/reset, lastError), `UserSettings` (`syncIntervalHrs`, `deepDiveBudget`, `portfolioPublic`, `publicSlug`).
 
 **Invariant:** all per-user data lives in `Contribution`/`UserRepository`/`UserOrganization`; never write per-user data onto shared `Repository`/`Organization` rows. Worth an explicit test.
 
@@ -68,9 +68,9 @@ GraphQL v4 is primary (its limit is query-*cost*, not request count, and it coll
 
 - **Per-repo:** PRs opened, PRs merged, **merge rate**, **PR cycle-time p50/p90** (from `cycleTimeSec`), reviews given, issues opened, commits, code churn / avg PR size, language mix (RepoLanguage %), contribution timeline (StatSnapshot), first/last contribution.
 - **Per-org:** same set summed across the org's repos + top-repos-within-org breakdown + byte-weighted org language mix.
-- **Global / profile:** all-time + windowed totals; **active streak** (user-defined consecutive periods with ≥1 qualifying contribution — distinct from GitHub's heatmap); **goal progress** (current period vs target + history); cross-repo consistency/engagement (distinct repos/orgs active per period); global cycle-time percentiles + merge rate; contribution calendar; top languages overall.
+- **Global / profile:** all-time + windowed totals; **active streak** (user-defined consecutive periods with ≥1 qualifying contribution — distinct from GitHub's heatmap); cross-repo consistency/engagement (distinct repos/orgs active per period); global cycle-time percentiles + merge rate; contribution calendar; top languages overall.
 
-Percentiles via SQL `percentile_cont` or JS over a windowed fetch; streaks/goals in JS over ordered snapshots.
+Percentiles via SQL `percentile_cont` or JS over a windowed fetch; streaks in JS over ordered snapshots.
 
 ---
 
@@ -88,20 +88,22 @@ Anthropic SDK with `cache_control: ephemeral` on large stable blocks. Three jobs
 
 ## App structure
 
+> All application source lives under `src/` (e.g. `src/app`, `src/components`, `src/lib`, `src/worker`, `src/types`); the `@/*` import alias maps to `./src/*`. Paths below are shown relative to `src/`. Config (`package.json`, `next.config.mjs`, `tsconfig.json`), plus `prisma/`, `docs/`, and `scripts/`, stay at the repo root.
+
 ```
 app/(marketing)/page.tsx                      landing + Sign in with GitHub
-app/(app)/dashboard/page.tsx                  global stats, calendar, goals, streaks, top repos/orgs
+app/(app)/dashboard/page.tsx                  global stats, calendar, streaks, top repos/orgs
 app/(app)/repos/page.tsx                       contributed-repo list
 app/(app)/repos/[owner]/[name]/page.tsx        repo detail: metrics, charts, metadata summary, "Deep dive" btn
 app/(app)/orgs/[login]/page.tsx                org aggregation view
 app/(app)/profile/page.tsx                     AI profile summary + headline metrics
-app/(app)/settings/page.tsx                    goals, sync interval, deep-dive budget, portfolio toggle
+app/(app)/settings/page.tsx                    sync interval, deep-dive budget, portfolio toggle
 app/p/[slug]/page.tsx                          PUBLIC portfolio export (no auth; if portfolioPublic)
 app/api/auth/[...nextauth]/route.ts            NextAuth GitHub provider
 app/api/sync/route.ts                          POST enqueue "Refresh now" (debounced)
 app/api/jobs/[id]/route.ts                     GET job/sync status (UI polls)
 app/api/repos/[id]/deep-dive/route.ts          POST enqueue deep-dive (budget-checked)
-app/actions/*                                  server actions: createGoal, updateSettings, togglePortfolio
+app/actions/*                                  server actions: updateSettings, togglePortfolio
 worker/index.ts, worker/queues.ts, worker/processors/*   BullMQ worker (separate Fly process)
 lib/github/{graphql,rest,rateLimit}.ts
 lib/anthropic/{client,prompts,fileSelector}.ts
@@ -110,13 +112,13 @@ lib/{db,auth,crypto}.ts
 prisma/schema.prisma
 ```
 
-Server Components read Prisma directly; server actions for goals/settings; API routes for poll-able actions (sync, deep-dive) returning a job id.
+Server Components read Prisma directly; server actions for settings; API routes for poll-able actions (sync, deep-dive) returning a job id.
 
 ---
 
 ## Phasing
 
-**MVP (core loop):** GitHub OAuth + encrypted tokens · discover + incremental GraphQL sync · 12-month backfill · ~3h refresh + "Refresh now" with job polling · core per-repo/org/global metrics + StatSnapshot + Recharts · metadata (Haiku) + profile (Sonnet) summaries · goals + user-defined streaks · dashboard/repo/org/profile/settings pages.
+**MVP (core loop):** GitHub OAuth + encrypted tokens · discover + incremental GraphQL sync · 12-month backfill · ~3h refresh + "Refresh now" with job polling · core per-repo/org/global metrics + StatSnapshot + Recharts · metadata (Haiku) + profile (Sonnet) summaries · user-defined streaks · dashboard/repo/org/profile/settings pages.
 
 **Phase 2:** on-demand deep-dive (Sonnet/Opus + budget) · public portfolio export `/p/[slug]` · deeper history backfill, percentile caching, richer charts.
 
@@ -137,7 +139,7 @@ Server Components read Prisma directly; server actions for goals/settings; API r
 
 ## Verification (when built)
 
-- **Unit:** metric calculators (`lib/metrics/*`) against fixture `Contribution` sets — merge rate, cycle-time percentiles, streaks, goal progress; file-selector heuristics against a sample tree.
+- **Unit:** metric calculators (`lib/metrics/*`) against fixture `Contribution` sets — merge rate, cycle-time percentiles, streaks; file-selector heuristics against a sample tree.
 - **Integration:** mock GitHub GraphQL/REST → run `discover`→`sync-repo`→`compute-stats`; assert upsert idempotency (re-run with overlap window leaves no dupes) and per-user isolation invariant.
 - **AI:** assert cache-hit path (same `cacheKey` ⇒ no Claude call) and token-cap truncation; smoke a real metadata summary against one public repo.
 - **E2E (manual):** `npm run dev` + worker, sign in with GitHub, confirm dashboard populates within minutes, repo/org/profile pages render charts + summaries, "Deep dive" enqueues and completes, "Refresh now" updates `lastSyncedAt`, rate-limit gate trips gracefully under a low floor.
