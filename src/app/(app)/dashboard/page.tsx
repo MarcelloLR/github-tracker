@@ -7,13 +7,11 @@ import MetricCards from "@/components/dashboard/MetricCards";
 import CalendarHeatmap from "@/components/dashboard/CalendarHeatmap";
 import ContributionChart from "@/components/dashboard/ContributionChart";
 import Streaks from "@/components/dashboard/Streaks";
-import Goals from "@/components/dashboard/Goals";
 import TopList, { type TopItem } from "@/components/dashboard/TopList";
 import RefreshButton from "@/components/dashboard/RefreshButton";
 import styles from "@/components/dashboard/dashboard.module.css";
 import {
   activeDatesFromSnapshots,
-  computeGoalProgress,
   snapshotsToHeatmap,
   snapshotsToWeeklyTrend,
   type SnapshotRow,
@@ -40,7 +38,7 @@ export default async function DashboardPage() {
 
   const since = new Date(Date.now() - HEATMAP_DAYS * 86_400_000);
 
-  const [contribs, snapshots, goals, syncState] = await Promise.all([
+  const [contribs, snapshots, syncState] = await Promise.all([
     prisma.contribution.findMany({
       where: { userId },
       select: {
@@ -64,11 +62,6 @@ export default async function DashboardPage() {
         commits: true,
       },
     }),
-    prisma.goal.findMany({
-      where: { userId, active: true },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, metric: true, period: true, target: true },
-    }),
     prisma.syncState.findUnique({ where: { userId } }),
   ]);
 
@@ -87,7 +80,6 @@ export default async function DashboardPage() {
   const heatmap = snapshotsToHeatmap(snapshotRows);
   const trend = snapshotsToWeeklyTrend(snapshotRows);
   const streaks = computeStreaks(activeDatesFromSnapshots(snapshotRows), now);
-  const goalProgress = computeGoalProgress(goals, snapshotRows, now);
 
   // Top repos by contribution count.
   const repoCounts = new Map<string, number>();
@@ -188,16 +180,10 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <div className={styles.twoCol}>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Active streak</h2>
-          <Streaks current={streaks.current} longest={streaks.longest} />
-        </section>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Goals</h2>
-          <Goals goals={goalProgress} />
-        </section>
-      </div>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Active streak</h2>
+        <Streaks current={streaks.current} longest={streaks.longest} />
+      </section>
 
       <div className={styles.twoCol}>
         <section className={styles.section}>

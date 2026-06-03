@@ -36,7 +36,6 @@ model User {
   contributions Contribution[]
   statSnapshots StatSnapshot[]
   summaries     AISummary[]
-  goals         Goal[]
   syncState     SyncState?
   settings      UserSettings?
 }
@@ -298,32 +297,6 @@ model SyncState {
   lastError      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-enum GoalMetric {
-  PRS
-  REVIEWS
-  ISSUES
-  COMMITS
-}
-
-enum GoalPeriod {
-  WEEKLY
-  MONTHLY
-}
-
-model Goal {
-  id        String     @id @default(cuid())
-  userId    String
-  metric    GoalMetric
-  period    GoalPeriod
-  target    Int
-  active    Boolean    @default(true)
-  createdAt DateTime   @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model UserSettings {

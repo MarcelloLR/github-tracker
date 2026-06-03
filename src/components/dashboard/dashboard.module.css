@@ -107,7 +107,7 @@
   }
 }
 
-/* Streak + goal pills ---------------------------------------------------- */
+/* Streak pills ----------------------------------------------------------- */
 
 .statRow {
   display: flex;
@@ -130,39 +130,6 @@
   font-size: 0.8rem;
   opacity: 0.65;
   margin-top: 0.25rem;
-}
-
-.goal {
-  margin: 0.6rem 0;
-}
-
-.goalHeader {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-bottom: 0.3rem;
-}
-
-.goalMet {
-  font-weight: 600;
-}
-
-.progressTrack {
-  height: 8px;
-  border-radius: 4px;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  border-radius: 4px;
-  background: #2da44e;
-  transition: width 0.3s ease;
-}
-
-.progressFillMet {
-  background: #1f883d;
 }
 
 /* Refresh button --------------------------------------------------------- */

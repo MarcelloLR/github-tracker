@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { GoalsForm, type GoalItem } from "@/components/settings/GoalsForm";
 import { SyncBudgetForm } from "@/components/settings/SyncBudgetForm";
 import { PortfolioForm } from "@/components/settings/PortfolioForm";
 
@@ -14,20 +13,11 @@ export default async function SettingsPage() {
   const session = await auth();
   const userId = session!.user.id;
 
-  const [settings, goals] = await Promise.all([
-    prisma.userSettings.findUnique({ where: { userId } }),
-    prisma.goal.findMany({
-      where: { userId, active: true },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, metric: true, period: true, target: true },
-    }),
-  ]);
+  const settings = await prisma.userSettings.findUnique({ where: { userId } });
 
   return (
     <main>
       <h1>Settings</h1>
-
-      <GoalsForm goals={goals as GoalItem[]} />
 
       <SyncBudgetForm
         syncIntervalHrs={settings?.syncIntervalHrs ?? DEFAULT_SYNC_INTERVAL_HRS}
