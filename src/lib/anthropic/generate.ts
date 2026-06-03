@@ -1,6 +1,10 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { getAnthropic } from "@/lib/anthropic/client";
 import { estimateTokens } from "@/lib/anthropic/prompts";
+import { AnthropicError } from "@/lib/errors";
+import { childLogger } from "@/lib/log";
+
+const log = childLogger({ component: "anthropic" });
 
 // Per-1M-token USD pricing, keyed by model id. Used to record costUsd on each
 // AISummary. Falls back to 0 for an unknown model so a pricing gap never
@@ -65,14 +69,28 @@ export async function generateSummary(
     content.push({ type: "text", text: opts.trailing });
   }
 
-  const message = await client.messages.create({
-    model: opts.model,
-    max_tokens: opts.maxTokens ?? 2048,
-    system: [
-      { type: "text", text: opts.system, cache_control: { type: "ephemeral" } },
-    ],
-    messages: [{ role: "user", content }],
-  });
+  log.debug({ model: opts.model }, "claude request");
+  let message: Anthropic.Message;
+  try {
+    message = await client.messages.create({
+      model: opts.model,
+      max_tokens: opts.maxTokens ?? 2048,
+      system: [
+        { type: "text", text: opts.system, cache_control: { type: "ephemeral" } },
+      ],
+      messages: [{ role: "user", content }],
+    });
+  } catch (cause) {
+    throw new AnthropicError("claude request failed", { cause, context: { model: opts.model } });
+  }
+  log.info(
+    {
+      model: opts.model,
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+    },
+    "claude request ok",
+  );
 
   const summaryMd = message.content
     .filter((b): b is Anthropic.TextBlock => b.type === "text")

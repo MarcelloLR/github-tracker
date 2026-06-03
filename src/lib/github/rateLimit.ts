@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/db";
+import { childLogger } from "@/lib/log";
+
+const log = childLogger({ component: "github" });
 
 const FLOOR = Number(process.env.GITHUB_RATE_FLOOR ?? "200");
 
@@ -24,5 +27,12 @@ export async function rateLimitDelayMs(userId: string): Promise<number> {
   const state = await prisma.syncState.findUnique({ where: { userId } });
   if (state?.rateRemaining == null || state.rateResetAt == null) return 0;
   if (state.rateRemaining > FLOOR) return 0;
-  return Math.max(0, state.rateResetAt.getTime() - Date.now());
+  const delay = Math.max(0, state.rateResetAt.getTime() - Date.now());
+  if (delay > 0) {
+    log.debug(
+      { userId, delayMs: delay, remaining: state.rateRemaining, resetAt: state.rateResetAt },
+      "github rate limit delay",
+    );
+  }
+  return delay;
 }

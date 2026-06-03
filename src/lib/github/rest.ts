@@ -1,5 +1,9 @@
 import { Octokit } from "@octokit/rest";
 import { RequestError } from "@octokit/request-error";
+import { GitHubError } from "@/lib/errors";
+import { childLogger } from "@/lib/log";
+
+const log = childLogger({ component: "github" });
 
 /** A REST client bound to a user's (decrypted) GitHub token. */
 export function githubRest(token: string): Octokit {
@@ -33,6 +37,7 @@ export async function fetchTree(
   sha: string,
   etag?: string,
 ): Promise<ConditionalResult<TreeEntry[]>> {
+  log.debug({ owner, repo, sha, conditional: Boolean(etag) }, "github rest getTree");
   try {
     const res = await octokit.git.getTree({
       owner,
@@ -50,7 +55,8 @@ export async function fetchTree(
     if (err instanceof RequestError && err.status === 304) {
       return { notModified: true };
     }
-    throw err;
+    const status = err instanceof RequestError ? err.status : undefined;
+    throw new GitHubError("github rest failed", { cause: err, context: { status } });
   }
 }
 

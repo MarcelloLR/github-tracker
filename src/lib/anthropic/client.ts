@@ -1,10 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { ConfigError } from "@/lib/errors";
 
 let _client: Anthropic | undefined;
 
 /** Lazily constructed so importing this module never throws when the key is unset. */
 export function getAnthropic(): Anthropic {
-  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  if (!_client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new ConfigError("ANTHROPIC_API_KEY is not set");
+    _client = new Anthropic({ apiKey });
+  }
   return _client;
 }
 
