@@ -165,7 +165,7 @@ export default async function DashboardPage() {
           <h2 className={styles.sectionTitle}>Contribution calendar</h2>
         </div>
         {heatmap.length ? (
-          <CalendarHeatmap data={heatmap} />
+          <CalendarHeatmap data={heatmap} today={now.toISOString().slice(0, 10)} />
         ) : (
           <div className={styles.empty}>No daily activity recorded for the last year yet.</div>
         )}
