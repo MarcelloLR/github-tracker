@@ -88,6 +88,8 @@ Anthropic SDK with `cache_control: ephemeral` on large stable blocks. Three jobs
 
 ## App structure
 
+> All application source lives under `src/` (e.g. `src/app`, `src/components`, `src/lib`, `src/worker`, `src/types`); the `@/*` import alias maps to `./src/*`. Paths below are shown relative to `src/`. Config (`package.json`, `next.config.mjs`, `tsconfig.json`), plus `prisma/`, `docs/`, and `scripts/`, stay at the repo root.
+
 ```
 app/(marketing)/page.tsx                      landing + Sign in with GitHub
 app/(app)/dashboard/page.tsx                  global stats, calendar, goals, streaks, top repos/orgs

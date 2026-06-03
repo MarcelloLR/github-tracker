@@ -7,7 +7,7 @@ const nextConfig = {
       { protocol: "https", hostname: "github.com" },
     ],
   },
-  // The BullMQ worker is a separate process (worker/index.ts); it is not bundled
+  // The BullMQ worker is a separate process (src/worker/index.ts); it is not bundled
   // by Next. Keep server-only packages external to avoid accidental client imports.
   serverExternalPackages: ["bullmq", "ioredis", "@prisma/client"],
 };
