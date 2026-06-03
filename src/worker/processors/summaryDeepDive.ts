@@ -1,4 +1,4 @@
-import type { Job } from "bullmq";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/crypto";
 import { githubRest, fetchTree } from "@/lib/github/rest";
@@ -26,7 +26,8 @@ import {
  * user's monthly UserSettings.deepDiveBudget; cached on the HEAD commit SHA.
  * The resulting AISummary is a SHARED repo-tier row (userId null). See docs/SPEC.md.
  */
-export async function summaryDeepDive(job: Job): Promise<void> {
+export async function summaryDeepDive(jobCtx: JobContext): Promise<void> {
+  const { job, log } = jobCtx;
   const { userId, repositoryId } = job.data as {
     userId: string;
     repositoryId: string;
@@ -34,7 +35,10 @@ export async function summaryDeepDive(job: Job): Promise<void> {
 
   // Enforce the per-user monthly deep-dive budget. The web route also checks
   // this before enqueueing; re-check here since the cap is a hard cost control.
-  if (await isDeepDiveBudgetExceeded(userId)) return;
+  if (await isDeepDiveBudgetExceeded(userId)) {
+    log.debug({ repositoryId, tier: "DEEP_DIVE" }, "summary.budget_exceeded");
+    return;
+  }
 
   const repo = await prisma.repository.findUnique({
     where: { id: repositoryId },
@@ -43,7 +47,11 @@ export async function summaryDeepDive(job: Job): Promise<void> {
 
   // Cache hit → skip everything (no GitHub, no Claude).
   const key = cacheKey("DEEP_DIVE", repo.nameWithOwner, repo.headSha);
-  if (await getCachedSummary(key)) return;
+  if (await getCachedSummary(key)) {
+    log.debug({ repositoryId, tier: "DEEP_DIVE", cacheHit: true }, "summary.cache_hit");
+    return;
+  }
+  log.debug({ repositoryId, tier: "DEEP_DIVE", cacheHit: false }, "summary.generating");
 
   // Load and decrypt the user's GitHub token. If decrypt throws, the token was
   // likely stored as plaintext (the auth-layer encryption TODO is still open).

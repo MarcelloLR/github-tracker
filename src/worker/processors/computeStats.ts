@@ -1,7 +1,7 @@
-import type { Job } from "bullmq";
 import type { ContributionType, Prisma, StatScope } from "@prisma/client";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
-import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { getQueue, QUEUE_NAMES, withCorrelation } from "@/lib/queue";
 
 interface ComputeStatsData {
   userId: string;
@@ -44,7 +44,8 @@ function utcMidnight(d: Date): Date {
  * the user's facts, so we recompute the full set. A targeted incremental
  * recompute is a documented follow-up.
  */
-export async function computeStats(job: Job): Promise<void> {
+export async function computeStats(ctx: JobContext): Promise<void> {
+  const { job, log, correlationId } = ctx;
   const { userId } = job.data as ComputeStatsData;
 
   const contributions = await prisma.contribution.findMany({
@@ -144,11 +145,12 @@ export async function computeStats(job: Job): Promise<void> {
       ? [prisma.statSnapshot.createMany({ data: rows, skipDuplicates: true })]
       : []),
   ]);
+  log.debug({ snapshotRows: rows.length }, "computeStats.snapshots_written");
 
   // Profile summary is throttled to material changes; enqueue best-effort.
   await getQueue(QUEUE_NAMES.summaryProfile).add(
     "profile",
-    { userId },
+    withCorrelation({ userId }, correlationId),
     { jobId: `summary-profile-${userId}-${Date.now()}` },
   );
 }

@@ -1,8 +1,9 @@
-import { DelayedError, type Job } from "bullmq";
+import { DelayedError } from "bullmq";
 import { createHash } from "node:crypto";
 import type { ContributionState, ContributionType, Prisma } from "@prisma/client";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
-import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { getQueue, QUEUE_NAMES, withCorrelation } from "@/lib/queue";
 import { getUserToken } from "@/lib/github/token";
 import {
   fetchCommitHistory,
@@ -36,7 +37,8 @@ const OVERLAP_MS = 24 * 60 * 60 * 1000; // 1 day
 const MAX_PAGES = 10;
 const PAGE_SIZE = 50;
 
-export async function syncRepo(job: Job): Promise<void> {
+export async function syncRepo(ctx: JobContext): Promise<void> {
+  const { job, log, correlationId } = ctx;
   const { userId, repositoryId } = job.data as SyncRepoData;
 
   const link = await prisma.userRepository.findUnique({
@@ -102,6 +104,18 @@ export async function syncRepo(job: Job): Promise<void> {
   const commits = await collectCommits(client, userId, repo.owner, repo.name, viewer.id, since);
   await upsertCommitDays(userId, repositoryId, commits);
 
+  log.debug(
+    {
+      repositoryId,
+      prs: prNodes.length,
+      issues: issueNodes.length,
+      reviews: reviewedNodes.length,
+      commits: commits.length,
+      incremental: since != null,
+    },
+    "syncRepo.upserted",
+  );
+
   // --- Refresh shared repo metadata + languages (ETag-aware not needed for the
   //     GraphQL metadata read; readmeHash/headSha/topics drive summary regen) -
   const metaChanged = await refreshRepoMetadata(client, userId, repo);
@@ -116,16 +130,17 @@ export async function syncRepo(job: Job): Promise<void> {
   // --- Downstream jobs ------------------------------------------------------
   await getQueue(QUEUE_NAMES.computeStats).add(
     "compute",
-    { userId, repositoryId },
+    withCorrelation({ userId, repositoryId }, correlationId),
     { jobId: `compute-stats-${userId}-${repositoryId}-${Date.now()}` },
   );
   if (metaChanged) {
     await getQueue(QUEUE_NAMES.summaryMetadata).add(
       "metadata",
-      { repositoryId },
+      withCorrelation({ repositoryId }, correlationId),
       { jobId: `summary-metadata-${repositoryId}-${Date.now()}` },
     );
   }
+  log.debug({ repositoryId, metaChanged }, "syncRepo.enqueued_downstream");
 }
 
 // ---------------------------------------------------------------------------

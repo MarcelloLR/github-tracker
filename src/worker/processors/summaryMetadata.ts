@@ -1,4 +1,4 @@
-import type { Job } from "bullmq";
+import type { JobContext } from "@/worker/runJob";
 import { prisma } from "@/lib/db";
 import { MODELS } from "@/lib/anthropic/client";
 import {
@@ -20,7 +20,8 @@ import { cacheKey, getCachedSummary, upsertSummary } from "@/lib/anthropic/cache
  * messages. The cache key still uses readmeHash so the summary is regenerated
  * whenever the README content changes.
  */
-export async function summaryMetadata(job: Job): Promise<void> {
+export async function summaryMetadata(jobCtx: JobContext): Promise<void> {
+  const { job, log } = jobCtx;
   const { repositoryId } = job.data as { repositoryId: string };
 
   const repo = await prisma.repository.findUnique({
@@ -35,7 +36,11 @@ export async function summaryMetadata(job: Job): Promise<void> {
   const key = cacheKey("METADATA", repo.nameWithOwner, sha);
 
   // Cache hit → skip the Claude call entirely.
-  if (await getCachedSummary(key)) return;
+  if (await getCachedSummary(key)) {
+    log.debug({ repositoryId, tier: "METADATA", cacheHit: true }, "summary.cache_hit");
+    return;
+  }
+  log.debug({ repositoryId, tier: "METADATA", cacheHit: false }, "summary.generating");
 
   // Recent commit messages from this repo's contribution facts (any user — the
   // shared repo summary is user-agnostic).
