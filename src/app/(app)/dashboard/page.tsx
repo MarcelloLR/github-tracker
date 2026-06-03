@@ -7,14 +7,12 @@ import MetricCards from "@/components/dashboard/MetricCards";
 import CalendarHeatmap from "@/components/dashboard/CalendarHeatmap";
 import ContributionChart from "@/components/dashboard/ContributionChart";
 import Streaks from "@/components/dashboard/Streaks";
-import Goals from "@/components/dashboard/Goals";
 import TopList, { type TopItem } from "@/components/dashboard/TopList";
 import RefreshButton from "@/components/dashboard/RefreshButton";
 import { EmptyState, PageHeader, Panel } from "@/components/ui";
 import styles from "@/components/dashboard/dashboard.module.css";
 import {
   activeDatesFromSnapshots,
-  computeGoalProgress,
   snapshotsToHeatmap,
   snapshotsToWeeklyTrend,
   type SnapshotRow,
@@ -41,7 +39,7 @@ export default async function DashboardPage() {
 
   const since = new Date(Date.now() - HEATMAP_DAYS * 86_400_000);
 
-  const [contribs, snapshots, goals, syncState] = await Promise.all([
+  const [contribs, snapshots, syncState] = await Promise.all([
     prisma.contribution.findMany({
       where: { userId },
       select: {
@@ -65,11 +63,6 @@ export default async function DashboardPage() {
         commits: true,
       },
     }),
-    prisma.goal.findMany({
-      where: { userId, active: true },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, metric: true, period: true, target: true },
-    }),
     prisma.syncState.findUnique({ where: { userId } }),
   ]);
 
@@ -88,7 +81,6 @@ export default async function DashboardPage() {
   const heatmap = snapshotsToHeatmap(snapshotRows);
   const trend = snapshotsToWeeklyTrend(snapshotRows);
   const streaks = computeStreaks(activeDatesFromSnapshots(snapshotRows), now);
-  const goalProgress = computeGoalProgress(goals, snapshotRows, now);
 
   // Top repos by contribution count.
   const repoCounts = new Map<string, number>();
@@ -169,7 +161,7 @@ export default async function DashboardPage() {
 
         <Panel title="Contribution calendar">
           {heatmap.length ? (
-            <CalendarHeatmap data={heatmap} />
+            <CalendarHeatmap data={heatmap} today={now.toISOString().slice(0, 10)} />
           ) : (
             <EmptyState>No daily activity recorded for the last year yet.</EmptyState>
           )}
@@ -183,14 +175,9 @@ export default async function DashboardPage() {
           )}
         </Panel>
 
-        <div className={styles.twoCol}>
-          <Panel title="Active streak">
-            <Streaks current={streaks.current} longest={streaks.longest} />
-          </Panel>
-          <Panel title="Goals">
-            <Goals goals={goalProgress} />
-          </Panel>
-        </div>
+        <Panel title="Active streak">
+          <Streaks current={streaks.current} longest={streaks.longest} />
+        </Panel>
 
         <div className={styles.twoCol}>
           <Panel title="Top repositories">

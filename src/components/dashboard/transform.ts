@@ -1,7 +1,6 @@
 // Pure (server-safe) transforms shared by the dashboard page. No Prisma/IO here
 // so it stays trivially testable; the page does the DB reads and passes rows in.
 
-import type { GoalProgress } from "./Goals";
 import type { HeatmapDay } from "./CalendarHeatmap";
 import type { TrendPoint } from "./ContributionChart";
 
@@ -61,55 +60,4 @@ export function snapshotsToWeeklyTrend(rows: SnapshotRow[]): TrendPoint[] {
     byWeek.set(key, pt);
   }
   return [...byWeek.values()].sort((a, b) => a.date.localeCompare(b.date));
-}
-
-/** UTC start of the current week (Monday) / month for goal windows. */
-export function periodStart(period: "WEEKLY" | "MONTHLY", now: Date): Date {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  if (period === "MONTHLY") {
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  }
-  const dow = (d.getUTCDay() + 6) % 7; // 0 = Monday
-  d.setUTCDate(d.getUTCDate() - dow);
-  return d;
-}
-
-export interface GoalRow {
-  id: string;
-  metric: GoalProgress["metric"];
-  period: GoalProgress["period"];
-  target: number;
-}
-
-/**
- * Compute current-period progress for each goal from GLOBAL daily snapshots.
- * Sums the relevant metric column over the goal's period window.
- */
-export function computeGoalProgress(
-  goals: GoalRow[],
-  rows: SnapshotRow[],
-  now: Date,
-): GoalProgress[] {
-  return goals.map((g) => {
-    const start = periodStart(g.period, now);
-    let current = 0;
-    for (const r of rows) {
-      if (r.date < start) continue;
-      switch (g.metric) {
-        case "PRS":
-          current += r.prsOpened;
-          break;
-        case "REVIEWS":
-          current += r.reviews;
-          break;
-        case "ISSUES":
-          current += r.issuesOpened;
-          break;
-        case "COMMITS":
-          current += r.commits;
-          break;
-      }
-    }
-    return { id: g.id, metric: g.metric, period: g.period, target: g.target, current };
-  });
 }

@@ -40,17 +40,25 @@ function levelFor(count: number, max: number): number {
 export default function CalendarHeatmap({
   data,
   weeks = 53,
+  today,
 }: {
   data: HeatmapDay[];
   weeks?: number;
+  /**
+   * Anchor day for the trailing window — ISO YYYY-MM-DD (UTC). Supplied by the
+   * server (a dynamic RSC) so SSR and client hydration compute an identical
+   * grid; computing it here with `new Date()` would mismatch across a UTC
+   * midnight boundary and break hydration.
+   */
+  today: string;
 }) {
   const { columns, monthLabels, total, max } = useMemo(() => {
     const counts = new Map<string, number>();
     for (const d of data) counts.set(d.date, (counts.get(d.date) ?? 0) + d.count);
 
-    // Anchor end of grid to the Saturday on/after today, start `weeks` back.
-    const today = new Date();
-    const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    // Anchor end of grid to the Saturday on/after `today`, start `weeks` back.
+    const anchor = new Date(`${today}T00:00:00.000Z`);
+    const end = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth(), anchor.getUTCDate()));
     // Move end to end-of-week (Saturday, getUTCDay()===6).
     end.setUTCDate(end.getUTCDate() + (6 - end.getUTCDay()));
     const start = new Date(end.getTime() - (weeks * 7 - 1) * 86_400_000);
@@ -69,7 +77,7 @@ export default function CalendarHeatmap({
     let lastMonth = -1;
 
     let cursor = new Date(start.getTime());
-    const todayKey = dateKey(end) >= dateKey(today) ? dateKey(today) : dateKey(end);
+    const todayKey = dateKey(end) >= today ? today : dateKey(end);
     for (let w = 0; w < weeks; w++) {
       const x = w * (CELL + GAP);
       const cells: { y: number; date: string; count: number }[] = [];
@@ -93,7 +101,7 @@ export default function CalendarHeatmap({
       cols.push({ x, cells });
     }
     return { columns: cols, monthLabels: labels, total, max: maxCount };
-  }, [data, weeks]);
+  }, [data, weeks, today]);
 
   const width = weeks * (CELL + GAP);
   const gridHeight = 7 * (CELL + GAP);

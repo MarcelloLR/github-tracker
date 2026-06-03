@@ -4,11 +4,11 @@ A personal dashboard for tracking your open source contributions over time — b
 
 ## What it does
 
-OSTrack connects to your GitHub account and gives you a meaningful view of your open source work: PRs opened and merged, code reviews given, issues filed, contribution streaks, and impact metrics like average PR cycle time and engagement. You can set weekly or monthly contribution goals, track your progress, and export a portfolio summary for your resume or profile.
+OSTrack connects to your GitHub account and gives you a meaningful view of your open source work: PRs opened and merged, code reviews given, issues filed, contribution streaks, and impact metrics like average PR cycle time and engagement. You can track your progress over time and export a portfolio summary for your resume or profile.
 
 ## Why it exists
 
-GitHub shows you *what* you did. OSTrack helps you understand *how much*, *how consistently*, and *how effectively* — and holds you accountable to goals you set yourself.
+GitHub shows you *what* you did. OSTrack helps you understand *how much*, *how consistently*, and *how effectively* you contribute over time.
 
 ## Tech stack
 
@@ -23,7 +23,6 @@ GitHub shows you *what* you did. OSTrack helps you understand *how much*, *how c
 
 - GitHub OAuth login — sign in with your GitHub account, no manual setup
 - Automatic data sync — contribution data refreshes in the background every few hours
-- Goal tracking — set targets for PRs, reviews, or issues per week or month
 - Streak tracking — defined by you, not GitHub's default activity counter
 - Impact metrics — PR cycle time, engagement, cross-repo consistency
 - Portfolio export — shareable public page summarizing your contributions

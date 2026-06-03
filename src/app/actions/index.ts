@@ -38,23 +38,6 @@ async function uniqueSlug(base: string, userId: string): Promise<string> {
   return `${root}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export async function createGoal(input: {
-  metric: "PRS" | "REVIEWS" | "ISSUES" | "COMMITS";
-  period: "WEEKLY" | "MONTHLY";
-  target: number;
-}): Promise<void> {
-  const userId = await requireUserId();
-  await prisma.goal.create({ data: { userId, ...input } });
-  revalidatePath("/settings");
-}
-
-export async function deleteGoal(id: string): Promise<void> {
-  const userId = await requireUserId();
-  // Scope the delete to the owner so a user can't delete another user's goal.
-  await prisma.goal.deleteMany({ where: { id, userId } });
-  revalidatePath("/settings");
-}
-
 export async function updateSettings(input: {
   syncIntervalHrs?: number;
   deepDiveBudget?: number;
