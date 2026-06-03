@@ -1,0 +1,66 @@
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background:
+    radial-gradient(
+      ellipse 90% 60% at 50% -10%,
+      var(--accent-soft),
+      transparent 70%
+    ),
+    var(--background);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 560px;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint-fg);
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+}
+
+.title {
+  margin: 1.25rem 0 0;
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 1rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--muted-fg);
+  max-width: 460px;
+}
+
+.form {
+  margin-top: 2rem;
+}
+
+.ghIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.features {
+  margin-top: 1.5rem;
+  font-size: 0.82rem;
+  color: var(--faint-fg);
+}
