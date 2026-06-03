@@ -1,0 +1,287 @@
+/* Shared styling for dashboard + profile UI building blocks. */
+
+.section {
+  margin: 2rem 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.muted {
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+/* Headline metric cards -------------------------------------------------- */
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.metricCard {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.metricLabel {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  margin-top: 0.2rem;
+}
+
+/* Generic card / panel --------------------------------------------------- */
+
+.card {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.cardRow:last-child {
+  border-bottom: none;
+}
+
+.rowMain {
+  min-width: 0;
+}
+
+.rowName {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSub {
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+.rowCount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Two-column layout ------------------------------------------------------ */
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Streak + goal pills ---------------------------------------------------- */
+
+.statRow {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.bigStat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bigStatValue {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bigStatLabel {
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin-top: 0.25rem;
+}
+
+.goal {
+  margin: 0.6rem 0;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.goalMet {
+  font-weight: 600;
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  background: #2da44e;
+  transition: width 0.3s ease;
+}
+
+.progressFillMet {
+  background: #1f883d;
+}
+
+/* Refresh button --------------------------------------------------------- */
+
+.refreshBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.refreshBtn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  cursor: pointer;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.refreshStatus {
+  font-size: 0.82rem;
+  opacity: 0.7;
+}
+
+.refreshError {
+  font-size: 0.82rem;
+  color: #cf222e;
+}
+
+/* Empty states ----------------------------------------------------------- */
+
+.empty {
+  border: 1px dashed color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+/* Calendar heatmap ------------------------------------------------------- */
+
+.heatmapWrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.heatmapLegend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.legendSwatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+/* Markdown (profile) ----------------------------------------------------- */
+
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 1.2rem 0 0.5rem;
+  line-height: 1.25;
+}
+
+.markdown h1 {
+  font-size: 1.4rem;
+}
+
+.markdown h2 {
+  font-size: 1.2rem;
+}
+
+.markdown h3 {
+  font-size: 1.05rem;
+}
+
+.markdown p {
+  margin: 0.6rem 0;
+}
+
+.markdown ul {
+  margin: 0.6rem 0;
+  padding-left: 1.3rem;
+}
+
+.markdown li {
+  margin: 0.2rem 0;
+}
+
+.markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.highlights {
+  margin: 0.75rem 0 0;
+  padding-left: 1.3rem;
+}
+
+.highlights li {
+  margin: 0.3rem 0;
+}
