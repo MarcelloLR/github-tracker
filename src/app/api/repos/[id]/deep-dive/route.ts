@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { getQueue, QUEUE_NAMES, withCorrelation } from "@/lib/queue";
 import { isDeepDiveBudgetExceeded } from "@/lib/anthropic/cache";
+import { withRoute, requireApiUser } from "@/lib/api/handler";
+import { BudgetExceededError } from "@/lib/errors";
 
 // Enqueue an on-demand deep-dive summary for a repository.
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-  const { id: repositoryId } = await params;
+export const POST = withRoute<{ id: string }>(async ({ params, requestId, log }) => {
+  const userId = await requireApiUser();
+  const { id: repositoryId } = params;
 
   // Enforce the monthly deep-dive budget before spending any work.
-  if (await isDeepDiveBudgetExceeded(session.user.id)) {
-    return NextResponse.json({ error: "budget exceeded" }, { status: 429 });
+  if (await isDeepDiveBudgetExceeded(userId)) {
+    throw new BudgetExceededError("deep-dive budget exceeded", { context: { userId, repositoryId } });
   }
 
-  const job = await getQueue(QUEUE_NAMES.summaryDeepDive).add("deep-dive", {
-    userId: session.user.id,
-    repositoryId,
-  });
+  const job = await getQueue(QUEUE_NAMES.summaryDeepDive).add(
+    "deep-dive",
+    withCorrelation({ userId, repositoryId }, requestId),
+  );
+  log.info({ userId, repositoryId, jobId: job.id }, "deepDive.enqueued");
   return NextResponse.json({ jobId: job.id });
-}
+});
