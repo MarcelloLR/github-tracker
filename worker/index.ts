@@ -20,9 +20,14 @@ const workers = [
   new Worker(QUEUE_NAMES.summaryProfile, summaryProfile, { connection }),
 ];
 
-await scheduleRecurringSync();
-
-console.log(`[worker] started — ${workers.length} queues listening`);
+// Avoid a top-level await here: tsx/esbuild compiles this entry as CommonJS
+// (package.json is not `"type": "module"`), which forbids top-level await.
+scheduleRecurringSync()
+  .then(() => console.log(`[worker] started — ${workers.length} queues listening`))
+  .catch((err) => {
+    console.error("[worker] failed to schedule recurring sync:", err);
+    process.exit(1);
+  });
 
 async function shutdown() {
   await Promise.all(workers.map((w) => w.close()));
