@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { getQueue, QUEUE_NAMES, withCorrelation } from "@/lib/queue";
+import { withRoute, requireApiUser } from "@/lib/api/handler";
 
 // Skip re-enqueueing if a sync already ran or was enqueued within this window.
 const DEBOUNCE_MS = 2 * 60 * 1000; // 2 minutes
@@ -14,12 +14,8 @@ const DEBOUNCE_MS = 2 * 60 * 1000; // 2 minutes
  * return the in-flight discover job id so the UI can keep polling it; otherwise
  * we return { debounced: true }.
  */
-export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-  const userId = session.user.id;
+export const POST = withRoute(async ({ requestId, log }) => {
+  const userId = await requireApiUser();
 
   const syncState = await prisma.syncState.findUnique({ where: { userId } });
   const recentlySynced =
@@ -36,11 +32,14 @@ export async function POST() {
       (j) => (j.data as { userId?: string } | undefined)?.userId === userId,
     );
     if (mine) {
+      log.debug({ userId, jobId: mine.id, inFlight, recentlySynced }, "sync.debounced");
       return NextResponse.json({ jobId: mine.id, debounced: true });
     }
+    log.debug({ userId, inFlight, recentlySynced }, "sync.debounced");
     return NextResponse.json({ debounced: true });
   }
 
-  const job = await queue.add("manual", { userId }, { priority: 1 });
+  const job = await queue.add("manual", withCorrelation({ userId }, requestId), { priority: 1 });
+  log.info({ userId, jobId: job.id }, "sync.enqueued");
   return NextResponse.json({ jobId: job.id });
-}
+});

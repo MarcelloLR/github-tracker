@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { getQueue, QUEUE_NAMES } from "@/lib/queue";
+import { withRoute, requireApiUser } from "@/lib/api/handler";
+import { NotFoundError } from "@/lib/errors";
 
 // Poll job/sync status for the UI. A job id can belong to any of the worker
 // queues (discover, sync-repo, compute-stats, summary-*), so check each and
 // return the first match.
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-  const { id } = await params;
+export const GET = withRoute<{ id: string }>(async ({ params }) => {
+  await requireApiUser();
+  const { id } = params;
 
   for (const name of Object.values(QUEUE_NAMES)) {
     const job = await getQueue(name).getJob(id);
@@ -26,5 +21,5 @@ export async function GET(
     });
   }
 
-  return NextResponse.json({ error: "not found" }, { status: 404 });
-}
+  throw new NotFoundError("job not found");
+});
