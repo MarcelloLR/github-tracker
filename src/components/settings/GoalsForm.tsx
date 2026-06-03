@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { createGoal, deleteGoal } from "@/app/actions";
 import styles from "./settings.module.css";
 
@@ -42,8 +43,10 @@ export function GoalsForm({ goals }: { goals: GoalItem[] }) {
     startTransition(async () => {
       try {
         await createGoal({ metric, period, target: Math.floor(target) });
+        toast.success("Goal added.");
       } catch {
         setError("Could not create goal.");
+        toast.error("Could not create goal.");
       }
     });
   }
@@ -53,8 +56,10 @@ export function GoalsForm({ goals }: { goals: GoalItem[] }) {
     startTransition(async () => {
       try {
         await deleteGoal(id);
+        toast.success("Goal deleted.");
       } catch {
         setError("Could not delete goal.");
+        toast.error("Could not delete goal.");
       }
     });
   }

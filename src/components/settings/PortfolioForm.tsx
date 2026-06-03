@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { togglePortfolio, updatePublicSlug } from "@/app/actions";
 import styles from "./settings.module.css";
 
@@ -31,9 +32,11 @@ export function PortfolioForm({
         } else {
           setStatus(next ? "Portfolio is public." : "Portfolio is private.");
         }
+        toast.success(next ? "Portfolio is now public." : "Portfolio is now private.");
       } catch {
         setIsPublic(!next);
         setError("Could not update portfolio visibility.");
+        toast.error("Could not update portfolio visibility.");
       }
     });
   }
@@ -54,8 +57,14 @@ export function PortfolioForm({
             ? "Link saved."
             : `Adjusted to an available slug: ${res.slug}`,
         );
+        toast.success(
+          res.slug === slug.trim()
+            ? "Link saved."
+            : `Adjusted to an available slug: ${res.slug}`,
+        );
       } catch {
         setError("Could not update the public link.");
+        toast.error("Could not update the public link.");
       }
     });
   }

@@ -2,6 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { fetchJson, FetchError } from "@/lib/api/fetchJson";
 import styles from "./dashboard.module.css";
 
 type Phase = "idle" | "starting" | "syncing" | "done" | "error";
@@ -33,21 +35,25 @@ export default function RefreshButton({
         await new Promise((r) => setTimeout(r, POLL_MS));
         let state = "unknown";
         try {
-          const res = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
-          if (res.ok) {
-            const data = (await res.json()) as { state?: string };
-            state = data.state ?? "unknown";
-          } else if (res.status === 404) {
-            // Job already drained from the queue — treat as complete.
+          // 404 means the job already drained from the queue — treat as
+          // complete. Suppress fetchJson's toast since polling errors are
+          // transient and handled inline.
+          const data = await fetchJson<{ state?: string }>(`/api/jobs/${jobId}`, {
+            cache: "no-store",
+            toastOnError: false,
+          });
+          state = data.state ?? "unknown";
+        } catch (err) {
+          if (err instanceof FetchError && err.status === 404) {
             state = "completed";
           }
-        } catch {
-          // Transient network error; keep polling.
+          // Otherwise a transient network/server error; keep polling.
         }
         if (TERMINAL.has(state)) {
           if (state === "failed") {
             setPhase("error");
             setMessage("Sync failed. Try again shortly.");
+            toast.error("Sync failed. Try again shortly.");
             return;
           }
           setPhase("done");
@@ -69,9 +75,12 @@ export default function RefreshButton({
     setPhase("starting");
     setMessage(null);
     try {
-      const res = await fetch("/api/sync", { method: "POST" });
-      if (!res.ok) throw new Error(`sync returned ${res.status}`);
-      const data = (await res.json()) as { jobId?: string; debounced?: boolean };
+      // Suppress fetchJson's auto-toast: we surface our own message below so
+      // the toast and the inline status stay consistent.
+      const data = await fetchJson<{ jobId?: string; debounced?: boolean }>(
+        "/api/sync",
+        { method: "POST", toastOnError: false },
+      );
       if (!data.jobId) {
         // Debounced — a sync is already in flight; just refresh.
         setPhase("done");
@@ -82,9 +91,12 @@ export default function RefreshButton({
       setPhase("syncing");
       setMessage("Syncing your contributions…");
       await pollJob(data.jobId);
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof FetchError ? err.message : "Could not start sync. Try again.";
       setPhase("error");
-      setMessage("Could not start sync. Try again.");
+      setMessage(message);
+      toast.error(message);
     }
   }, [pollJob, router]);
 
