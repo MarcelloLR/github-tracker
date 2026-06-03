@@ -1,5 +1,14 @@
 import { graphql } from "@octokit/graphql";
 import { recordRateLimit, type RateLimitInfo } from "@/lib/github/rateLimit";
+import { GitHubError } from "@/lib/errors";
+import { childLogger } from "@/lib/log";
+
+const log = childLogger({ component: "github" });
+
+/** Best-effort extraction of the GraphQL operation name from a query document. */
+function operationName(query: string): string | undefined {
+  return query.match(/\b(?:query|mutation)\s+(\w+)/)?.[1];
+}
 
 /** A GraphQL client bound to a user's (decrypted) GitHub token. */
 export function githubGraphql(token: string) {
@@ -36,9 +45,16 @@ async function runWithRateLimit<T extends { rateLimit?: RawRateLimit | null }>(
   query: string,
   variables: Record<string, unknown>,
 ): Promise<T> {
-  const result = await client<T>(query, variables);
+  const operation = operationName(query);
+  let result: T;
+  try {
+    result = await client<T>(query, variables);
+  } catch (cause) {
+    throw new GitHubError("github graphql failed", { cause, context: { operation } });
+  }
   const info = parseRateLimit(result.rateLimit);
   if (info) {
+    log.debug({ operation, cost: info.cost, remaining: info.remaining }, "github graphql ok");
     // SyncState row may not exist yet on a brand-new user; recordRateLimit uses
     // update(), so swallow the (rare) race rather than fail the whole job.
     await recordRateLimit(userId, info).catch(() => {});
