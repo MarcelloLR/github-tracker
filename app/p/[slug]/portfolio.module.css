@@ -1,0 +1,122 @@
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtle {
+  opacity: 0.7;
+  margin: 0;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.metric {
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+}
+
+.metricValue {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.metricLabel {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.langList,
+.repoList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.langName {
+  min-width: 8rem;
+  font-size: 0.9rem;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.langPct {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  min-width: 3rem;
+  text-align: right;
+}
+
+.repo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 6px;
+}
+
+.repoName {
+  font-weight: 500;
+}
+
+.repoMeta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.summary {
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+}
+
+.summary :is(h1, h2, h3) {
+  font-size: 1rem;
+}
+
+.empty {
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
