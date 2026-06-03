@@ -234,10 +234,14 @@ const ISSUE_SEARCH_FIELDS = /* GraphQL */ `
   }
 `;
 
+// NOTE: the GraphQL variable is `$searchQuery`, NOT `$query`. @octokit/graphql
+// reserves `query` (along with `method`, `url`, `headers`, …) as a request
+// option, so passing a variable literally named `query` throws
+// `"query" cannot be used as variable name` before any request is sent.
 export const ISSUE_SEARCH_QUERY = /* GraphQL */ `
-  query IssueSearch($query: String!, $first: Int!, $after: String) {
+  query IssueSearch($searchQuery: String!, $first: Int!, $after: String) {
     rateLimit { cost remaining resetAt }
-    search(type: ISSUE, query: $query, first: $first, after: $after) {
+    search(type: ISSUE, query: $searchQuery, first: $first, after: $after) {
       ${ISSUE_SEARCH_FIELDS}
     }
   }
@@ -300,7 +304,7 @@ export async function searchIssues(
     client,
     userId,
     ISSUE_SEARCH_QUERY,
-    { query, first, after: after ?? null },
+    { searchQuery: query, first, after: after ?? null },
   );
   const nodes = (result.search.nodes ?? []).filter(
     (n): n is SearchIssueOrPr =>
