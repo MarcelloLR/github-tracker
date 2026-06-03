@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { computeMetrics } from "@/lib/metrics/compute";
 import MetricCards from "@/components/repo/MetricCards";
 import LanguageMix, { type LanguageDatum } from "@/components/repo/LanguageMix";
+import { EmptyState, Panel } from "@/components/ui";
 import { metricCards } from "@/components/repo/metricsView";
 import { fmtInt, fmtPercent } from "@/components/repo/format";
 import styles from "@/components/repo/org.module.css";
@@ -95,9 +96,11 @@ export default async function OrgDetailPage({
 
   return (
     <main className={styles.page}>
-      <p className={styles.breadcrumb}>
-        <Link href="/repos">Repositories</Link> / {org.login}
-      </p>
+      <nav className={styles.breadcrumb}>
+        <Link href="/repos">Repositories</Link>
+        <span className={styles.sep}>/</span>
+        <span className={styles.crumbCurrent}>{org.login}</span>
+      </nav>
 
       <header className={styles.header}>
         <h1 className={styles.title}>
@@ -111,27 +114,25 @@ export default async function OrgDetailPage({
         </h1>
         {org.description && <p className={styles.desc}>{org.description}</p>}
         <p className={styles.facts}>
-          {fmtInt(org.repositories.length)} repos · contributing to{" "}
-          {fmtInt(activeRepoCount)}
+          <span className="tnum">{fmtInt(org.repositories.length)}</span> repos · contributing to{" "}
+          <span className="tnum">{fmtInt(activeRepoCount)}</span>
         </p>
       </header>
 
-      <section>
-        <h2>Your contributions across {org.login}</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Your contributions across {org.login}</h2>
         <MetricCards items={metricCards(orgMetrics)} />
       </section>
 
-      <section>
-        <h2>Language mix</h2>
+      <Panel title="Language mix" className={styles.section}>
         <LanguageMix languages={orgLanguages} />
-      </section>
+      </Panel>
 
-      <section>
-        <h2>Per-repo breakdown</h2>
+      <Panel title="Per-repo breakdown" className={styles.section} noBodyPadding>
         {repoRows.length === 0 ? (
-          <p className={styles.muted}>
-            No repositories recorded for this org yet.
-          </p>
+          <div className={styles.emptyWrap}>
+            <EmptyState>No repositories recorded for this org yet.</EmptyState>
+          </div>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -149,25 +150,25 @@ export default async function OrgDetailPage({
                 {repoRows.map(({ repo, metrics }) => (
                   <tr key={repo.id}>
                     <td>
-                      <Link href={`/repos/${repo.owner}/${repo.name}`}>
+                      <Link href={`/repos/${repo.owner}/${repo.name}`} className={styles.repoLink}>
                         {repo.name}
                       </Link>
                     </td>
-                    <td className={styles.num}>
+                    <td className={`${styles.num} tnum`}>
                       {fmtInt(metrics.prsOpened)}
                       <span className={styles.subNum}> ({fmtInt(metrics.prsMerged)})</span>
                     </td>
-                    <td className={styles.num}>{fmtPercent(metrics.mergeRate)}</td>
-                    <td className={styles.num}>{fmtInt(metrics.reviews)}</td>
-                    <td className={styles.num}>{fmtInt(metrics.issuesOpened)}</td>
-                    <td className={styles.num}>{fmtInt(metrics.commits)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtPercent(metrics.mergeRate)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.reviews)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.issuesOpened)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.commits)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </section>
+      </Panel>
     </main>
   );
 }

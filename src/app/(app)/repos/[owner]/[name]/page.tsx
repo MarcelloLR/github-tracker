@@ -8,6 +8,7 @@ import LanguageMix from "@/components/repo/LanguageMix";
 import SummaryMarkdown from "@/components/repo/SummaryMarkdown";
 import DeepDiveButton from "@/components/repo/DeepDiveButton";
 import ContributionTimelineChart from "@/components/repo/ContributionTimelineChart";
+import { Badge, Panel, Pill, EmptyState } from "@/components/ui";
 import {
   metricCards,
   timelineFromSnapshots,
@@ -84,18 +85,19 @@ export default async function RepoDetailPage({
 
   return (
     <main className={styles.page}>
-      <p className={styles.breadcrumb}>
-        <Link href="/repos">Repositories</Link> /{" "}
+      <nav className={styles.breadcrumb}>
+        <Link href="/repos">Repositories</Link>
+        <span className={styles.sep}>/</span>
         {repo.organization && (
           <>
             <Link href={`/orgs/${repo.organization.login}`}>
               {repo.organization.login}
-            </Link>{" "}
-            /{" "}
+            </Link>
+            <span className={styles.sep}>/</span>
           </>
         )}
-        {repo.name}
-      </p>
+        <span className={styles.crumbCurrent}>{repo.name}</span>
+      </nav>
 
       <header className={styles.header}>
         <h1 className={styles.title}>
@@ -109,70 +111,64 @@ export default async function RepoDetailPage({
         </h1>
         {repo.description && <p className={styles.desc}>{repo.description}</p>}
         <div className={styles.facts}>
-          {repo.primaryLang && <span>{repo.primaryLang}</span>}
-          <span>★ {fmtInt(repo.stargazers)}</span>
-          {repo.license && <span>{repo.license}</span>}
-          {repo.isPrivate && <span className={styles.badge}>private</span>}
-          <span>
+          {repo.primaryLang && <span className={styles.fact}>{repo.primaryLang}</span>}
+          <span className={`${styles.fact} tnum`}>★ {fmtInt(repo.stargazers)}</span>
+          {repo.license && <span className={styles.fact}>{repo.license}</span>}
+          {repo.isPrivate && <Badge tone="warn">Private</Badge>}
+          <span className={styles.fact}>
             Contributing {fmtDate(link.firstContributedAt)} – {fmtDate(link.lastContributedAt)}
           </span>
           {link.lastSyncedAt && (
-            <span className={styles.synced}>Synced {fmtDate(link.lastSyncedAt)}</span>
+            <span className={styles.fact}>Synced {fmtDate(link.lastSyncedAt)}</span>
           )}
         </div>
         {repo.topics.length > 0 && (
           <div className={styles.topics}>
             {repo.topics.map((t) => (
-              <span key={t} className={styles.topic}>
-                {t}
-              </span>
+              <Pill key={t}>{t}</Pill>
             ))}
           </div>
         )}
       </header>
 
-      <section>
-        <h2>Your contributions</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Your contributions</h2>
         <MetricCards items={metricCards(metrics)} />
       </section>
 
-      <section>
-        <h2>Contribution timeline</h2>
+      <Panel title="Contribution timeline" className={styles.section}>
         <ContributionTimelineChart data={timeline} />
-      </section>
+      </Panel>
 
-      <section>
-        <h2>Language mix</h2>
+      <Panel title="Language mix" className={styles.section}>
         <LanguageMix languages={repo.languages} />
-      </section>
+      </Panel>
 
-      <section>
-        <h2>Codebase summary</h2>
+      <Panel title="Codebase summary" className={styles.section}>
         {metadataSummary ? (
-          <div className={styles.summaryBox}>
+          <>
             <SummaryMarkdown markdown={metadataSummary.summaryMd} />
             <p className={styles.summaryMeta}>
               {metadataSummary.model} · {fmtDate(metadataSummary.generatedAt)}
             </p>
-          </div>
+          </>
         ) : (
-          <p className={styles.muted}>
+          <EmptyState>
             No metadata summary yet. It&rsquo;s generated when the repo is synced.
-          </p>
+          </EmptyState>
         )}
-      </section>
+      </Panel>
 
-      <section>
-        <h2>Deep dive</h2>
-        <p className={styles.muted}>
-          Reads a selection of high-signal source files and summarizes the
-          architecture. May use part of your monthly deep-dive budget.
-        </p>
+      <Panel
+        title="Deep dive"
+        description="Reads a selection of high-signal source files and summarizes the architecture. May use part of your monthly deep-dive budget."
+        className={styles.section}
+      >
         <DeepDiveButton
           repositoryId={repo.id}
           existingSummary={deepDiveSummary?.summaryMd ?? null}
         />
-      </section>
+      </Panel>
     </main>
   );
 }

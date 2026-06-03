@@ -1,3 +1,4 @@
+import { languageColor } from "@/lib/chart";
 import styles from "./LanguageMix.module.css";
 
 export interface LanguageDatum {
@@ -5,29 +6,15 @@ export interface LanguageDatum {
   bytes: number;
 }
 
-// Stable palette keyed by index; languages over this many get an "Other"-ish color.
-const COLORS = [
-  "#6366f1",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-  "#a3a3a3",
-];
-
 /**
  * Byte-weighted language mix as a single stacked bar + legend. Presentational
- * only — server passes already-summed bytes per language.
+ * only — server passes already-summed bytes per language. Colors come from the
+ * shared LANGUAGE_COLORS palette (via languageColor).
  */
 export default function LanguageMix({ languages }: { languages: LanguageDatum[] }) {
   const total = languages.reduce((a, l) => a + l.bytes, 0);
   if (total <= 0 || languages.length === 0) {
-    return (
-      <p style={{ opacity: 0.6, fontStyle: "italic" }}>No language data yet.</p>
-    );
+    return <p className={styles.empty}>No language data yet.</p>;
   }
 
   const sorted = [...languages].sort((a, b) => b.bytes - a.bytes);
@@ -41,7 +28,7 @@ export default function LanguageMix({ languages }: { languages: LanguageDatum[] 
             <div
               key={l.language}
               className={styles.segment}
-              style={{ width: `${pct}%`, background: COLORS[i % COLORS.length] }}
+              style={{ width: `${pct}%`, background: languageColor(i) }}
               title={`${l.language} ${pct.toFixed(1)}%`}
             />
           );
@@ -54,7 +41,7 @@ export default function LanguageMix({ languages }: { languages: LanguageDatum[] 
             <li key={l.language} className={styles.legendItem}>
               <span
                 className={styles.swatch}
-                style={{ background: COLORS[i % COLORS.length] }}
+                style={{ background: languageColor(i) }}
               />
               {l.language}
               <span className={styles.pct}>{pct.toFixed(1)}%</span>

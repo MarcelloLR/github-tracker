@@ -5,34 +5,20 @@
   flex-wrap: wrap;
 }
 
-.button {
-  font: inherit;
-  padding: 0.45rem 0.9rem;
-  border-radius: 6px;
-  border: 1px solid rgba(127, 127, 127, 0.4);
-  background: #6366f1;
-  color: #fff;
-  cursor: pointer;
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
 .hint {
   font-size: 0.85rem;
-  opacity: 0.7;
+  color: var(--muted-fg);
 }
 
 .error {
   font-size: 0.85rem;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .summary {
   margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid rgba(127, 127, 127, 0.25);
-  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
 }
