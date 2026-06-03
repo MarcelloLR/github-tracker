@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { updateSettings } from "@/app/actions";
+import { Button } from "@/components/ui";
 import styles from "./settings.module.css";
 
 export function SyncBudgetForm({
@@ -75,14 +76,9 @@ export function SyncBudgetForm({
           />
         </div>
 
-        <button
-          type="button"
-          className={styles.button}
-          onClick={save}
-          disabled={pending}
-        >
+        <Button type="button" onClick={save} disabled={pending}>
           Save
-        </button>
+        </Button>
       </div>
 
       {error ? (

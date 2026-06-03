@@ -4,7 +4,8 @@ import { computeMetrics, type ContribType } from "@/lib/metrics/compute";
 
 import MetricCards from "@/components/dashboard/MetricCards";
 import Markdown from "@/components/dashboard/Markdown";
-import styles from "@/components/dashboard/dashboard.module.css";
+import { PageHeader, Panel, EmptyState } from "@/components/ui";
+import styles from "./profile.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -55,44 +56,48 @@ export default async function ProfilePage() {
 
   return (
     <main>
-      <h1 className={styles.sectionTitle} style={{ fontSize: "1.5rem" }}>
-        Developer profile
-      </h1>
+      <PageHeader
+        title="Developer profile"
+        description="An AI summary of your open-source work, with headline metrics."
+      />
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>AI summary</h2>
-          {generated ? (
-            <span className={styles.muted}>
-              Generated {generated}
-              {profile?.model ? ` · ${profile.model}` : ""}
-            </span>
-          ) : null}
-        </div>
+      <div className={styles.stack}>
+        <Panel
+          title="AI summary"
+          actions={
+            generated ? (
+              <span className={styles.meta}>
+                Generated {generated}
+                {profile?.model ? ` · ${profile.model}` : ""}
+              </span>
+            ) : undefined
+          }
+        >
+          {profile ? (
+            <>
+              <Markdown source={profile.summaryMd} />
+              {highlights.length ? (
+                <ul className={styles.highlights}>
+                  {highlights.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          ) : (
+            <EmptyState>
+              No profile summary yet. Once your contributions are synced, the
+              worker generates an AI profile from your activity — check back after
+              a sync.
+            </EmptyState>
+          )}
+        </Panel>
 
-        {profile ? (
-          <div className={styles.card}>
-            <Markdown source={profile.summaryMd} />
-            {highlights.length ? (
-              <ul className={styles.highlights}>
-                {highlights.map((h, i) => (
-                  <li key={i}>{h}</li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        ) : (
-          <div className={styles.empty}>
-            No profile summary yet. Once your contributions are synced, the worker
-            generates an AI profile from your activity — check back after a sync.
-          </div>
-        )}
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Headline metrics</h2>
-        <MetricCards metrics={metrics} />
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Headline metrics</h2>
+          <MetricCards metrics={metrics} />
+        </section>
+      </div>
     </main>
   );
 }

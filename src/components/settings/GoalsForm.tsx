@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createGoal, deleteGoal } from "@/app/actions";
+import { Button } from "@/components/ui";
 import styles from "./settings.module.css";
 
 type Metric = "PRS" | "REVIEWS" | "ISSUES" | "COMMITS";
@@ -110,14 +111,9 @@ export function GoalsForm({ goals }: { goals: GoalItem[] }) {
           />
         </div>
 
-        <button
-          type="button"
-          className={styles.button}
-          onClick={add}
-          disabled={pending}
-        >
+        <Button type="button" onClick={add} disabled={pending}>
           Add goal
-        </button>
+        </Button>
       </div>
 
       {error ? <p className={`${styles.status} ${styles.error}`}>{error}</p> : null}
@@ -131,15 +127,16 @@ export function GoalsForm({ goals }: { goals: GoalItem[] }) {
               <span>
                 {g.target} {METRIC_LABELS[g.metric].toLowerCase()} {PERIOD_LABELS[g.period]}
               </span>
-              <button
+              <Button
                 type="button"
-                className={`${styles.button} ${styles.danger}`}
+                variant="danger"
+                size="sm"
                 onClick={() => remove(g.id)}
                 disabled={pending}
                 aria-label="Delete goal"
               >
                 Delete
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

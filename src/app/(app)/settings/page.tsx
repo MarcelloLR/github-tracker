@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { GoalsForm, type GoalItem } from "@/components/settings/GoalsForm";
 import { SyncBudgetForm } from "@/components/settings/SyncBudgetForm";
 import { PortfolioForm } from "@/components/settings/PortfolioForm";
+import { PageHeader } from "@/components/ui";
 
 // Defaults mirror prisma/schema.prisma so the UI is sensible before a
 // UserSettings row exists (it is created on first write).
@@ -25,7 +26,10 @@ export default async function SettingsPage() {
 
   return (
     <main>
-      <h1>Settings</h1>
+      <PageHeader
+        title="Settings"
+        description="Goals, sync cadence, and your public portfolio."
+      />
 
       <GoalsForm goals={goals as GoalItem[]} />
 

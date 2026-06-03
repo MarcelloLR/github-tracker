@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { computeMetrics, type ContribType } from "@/lib/metrics/compute";
+import { StatGrid, StatCard, Card } from "@/components/ui";
+import { languageColor } from "@/lib/chart";
 import styles from "./portfolio.module.css";
 
 // Public, unauthenticated portfolio export. Only renders when the owner has
@@ -107,7 +109,7 @@ export default async function PortfolioPage({
   return (
     <main className="container">
       <header className={styles.header}>
-        <h1>{displayName}</h1>
+        <h1 className={styles.name}>{displayName}</h1>
         {user?.login ? <p className={styles.subtle}>@{user.login}</p> : null}
         <p className={styles.subtle}>Open-source contribution portfolio</p>
       </header>
@@ -119,30 +121,27 @@ export default async function PortfolioPage({
       ) : null}
 
       <section className={styles.section}>
-        <h2>Headline metrics</h2>
-        <ul className={styles.metrics}>
+        <h2 className={styles.sectionTitle}>Headline metrics</h2>
+        <StatGrid>
           {headline.map((m) => (
-            <li key={m.label} className={styles.metric}>
-              <div className={styles.metricValue}>{m.value}</div>
-              <div className={styles.metricLabel}>{m.label}</div>
-            </li>
+            <StatCard key={m.label} value={m.value} label={m.label} />
           ))}
-        </ul>
+        </StatGrid>
       </section>
 
       <section className={styles.section}>
-        <h2>Top languages</h2>
+        <h2 className={styles.sectionTitle}>Top languages</h2>
         {topLanguages.length === 0 ? (
           <p className={styles.empty}>No language data yet.</p>
         ) : (
           <ul className={styles.langList}>
-            {topLanguages.map((l) => (
+            {topLanguages.map((l, i) => (
               <li key={l.language} className={styles.lang}>
                 <span className={styles.langName}>{l.language}</span>
                 <span className={styles.bar}>
                   <span
                     className={styles.barFill}
-                    style={{ width: `${l.pct}%` }}
+                    style={{ width: `${l.pct}%`, background: languageColor(i) }}
                   />
                 </span>
                 <span className={styles.langPct}>{l.pct.toFixed(1)}%</span>
@@ -153,14 +152,14 @@ export default async function PortfolioPage({
       </section>
 
       <section className={styles.section}>
-        <h2>Top repositories</h2>
+        <h2 className={styles.sectionTitle}>Top repositories</h2>
         {topRepos.length === 0 ? (
           <p className={styles.empty}>No public repositories yet.</p>
         ) : (
           <ul className={styles.repoList}>
             {topRepos.map((r) => (
               <li key={r.nameWithOwner} className={styles.repo}>
-                <span>
+                <span className={styles.repoMain}>
                   <span className={styles.repoName}>{r.nameWithOwner}</span>
                   {r.description ? (
                     <span className={styles.subtle}> — {r.description}</span>
@@ -177,12 +176,12 @@ export default async function PortfolioPage({
 
       {profileSummary?.summaryMd ? (
         <section className={styles.section}>
-          <h2>Developer profile</h2>
+          <h2 className={styles.sectionTitle}>Developer profile</h2>
           {/* Render Markdown simply: preserve author line breaks as plain text
               (no new deps, no raw HTML injection). */}
-          <div className={styles.summary} style={{ whiteSpace: "pre-wrap" }}>
-            {profileSummary.summaryMd}
-          </div>
+          <Card className={styles.summary}>
+            <div style={{ whiteSpace: "pre-wrap" }}>{profileSummary.summaryMd}</div>
+          </Card>
         </section>
       ) : null}
     </main>

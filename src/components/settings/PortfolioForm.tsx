@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { togglePortfolio, updatePublicSlug } from "@/app/actions";
+import { Button } from "@/components/ui";
 import styles from "./settings.module.css";
 
 export function PortfolioForm({
@@ -103,14 +104,9 @@ export function PortfolioForm({
             />
           </div>
         </div>
-        <button
-          type="button"
-          className={styles.button}
-          onClick={saveSlug}
-          disabled={pending}
-        >
+        <Button type="button" onClick={saveSlug} disabled={pending}>
           Save link
-        </button>
+        </Button>
       </div>
 
       {slug ? (
