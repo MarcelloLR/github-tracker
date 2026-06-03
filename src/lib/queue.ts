@@ -38,3 +38,16 @@ export function getQueue(name: QueueName): Queue {
   }
   return q;
 }
+
+/**
+ * Attach a `correlationId` to job data so a single originating request (an API
+ * "Refresh now" click) can be traced across the discover → sync-repo →
+ * compute-stats → summary-* chain. The worker's runJob wrapper binds it onto
+ * the job's logger. No-op when `correlationId` is undefined.
+ */
+export function withCorrelation<T extends object>(
+  data: T,
+  correlationId?: string,
+): T & { correlationId?: string } {
+  return correlationId ? { ...data, correlationId } : data;
+}

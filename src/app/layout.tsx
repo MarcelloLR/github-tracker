@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata = {
@@ -9,7 +10,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Global toast surface for client-side errors (see lib/api/fetchJson). */}
+        <Toaster richColors position="top-right" closeButton />
+      </body>
     </html>
   );
 }
