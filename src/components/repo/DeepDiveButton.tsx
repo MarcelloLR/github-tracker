@@ -2,6 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { fetchJson, FetchError } from "@/lib/api/fetchJson";
 import SummaryMarkdown from "./SummaryMarkdown";
 import styles from "./DeepDiveButton.module.css";
 
@@ -33,19 +35,28 @@ export default function DeepDiveButton({
     (jobId: string, attempt: number) => {
       pollRef.current = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/jobs/${jobId}`);
           // The jobs endpoint may 404 if the job has been cleaned up or lives
-          // in a different queue; treat that as "done" and refresh to pick up
-          // whatever the worker persisted.
-          const state =
-            res.status === 404
-              ? "unknown"
-              : ((await res.json()) as { state?: string }).state ?? "unknown";
+          // in a different queue; treat that as "unknown" and refresh to pick
+          // up whatever the worker persisted. Suppress fetchJson's toast since
+          // polling errors are transient and handled inline.
+          let state = "unknown";
+          try {
+            const data = await fetchJson<{ state?: string }>(`/api/jobs/${jobId}`, {
+              toastOnError: false,
+            });
+            state = data.state ?? "unknown";
+          } catch (err) {
+            if (!(err instanceof FetchError && err.status === 404)) throw err;
+          }
 
           if (TERMINAL.has(state) || attempt >= MAX_POLLS) {
             setStatus(state === "failed" ? "error" : "done");
-            if (state === "failed") setError("Deep-dive job failed.");
-            else router.refresh();
+            if (state === "failed") {
+              setError("Deep-dive job failed.");
+              toast.error("Deep-dive job failed.");
+            } else {
+              router.refresh();
+            }
             return;
           }
           poll(jobId, attempt + 1);
@@ -54,6 +65,7 @@ export default function DeepDiveButton({
           if (attempt >= MAX_POLLS) {
             setStatus("error");
             setError("Lost connection while polling the deep-dive job.");
+            toast.error("Lost connection while polling the deep-dive job.");
             return;
           }
           poll(jobId, attempt + 1);
@@ -67,28 +79,27 @@ export default function DeepDiveButton({
     setStatus("running");
     setError(null);
     try {
-      const res = await fetch(`/api/repos/${repositoryId}/deep-dive`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        setStatus("error");
-        setError(
-          res.status === 401
-            ? "You must be signed in to run a deep dive."
-            : `Could not start deep dive (HTTP ${res.status}).`,
-        );
-        return;
-      }
-      const { jobId } = (await res.json()) as { jobId?: string };
+      // Suppress fetchJson's auto-toast: we surface our own message below so
+      // the toast and the inline error stay consistent.
+      const { jobId } = await fetchJson<{ jobId?: string }>(
+        `/api/repos/${repositoryId}/deep-dive`,
+        { method: "POST", toastOnError: false },
+      );
       if (!jobId) {
         setStatus("error");
         setError("Worker did not return a job id.");
+        toast.error("Worker did not return a job id.");
         return;
       }
       poll(jobId, 0);
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof FetchError
+          ? err.message
+          : "Could not reach the server to start a deep dive.";
       setStatus("error");
-      setError("Could not reach the server to start a deep dive.");
+      setError(message);
+      toast.error(message);
     }
   }, [repositoryId, poll]);
 

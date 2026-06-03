@@ -1,0 +1,57 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.panel {
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 10px;
+  padding: 1.5rem 1.75rem;
+  max-width: 32rem;
+  width: 100%;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.message {
+  margin: 0 0 1rem;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.digest {
+  margin: 0 0 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.link {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}

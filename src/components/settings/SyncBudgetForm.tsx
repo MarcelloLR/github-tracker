@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { updateSettings } from "@/app/actions";
 import styles from "./settings.module.css";
 
@@ -35,8 +36,10 @@ export function SyncBudgetForm({
           deepDiveBudget: Math.floor(budget),
         });
         setStatus("Saved.");
+        toast.success("Settings saved.");
       } catch {
         setError("Could not save settings.");
+        toast.error("Could not save settings.");
       }
     });
   }
