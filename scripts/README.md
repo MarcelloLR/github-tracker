@@ -1,45 +1,46 @@
 # scripts
 
-Local dev helpers for the github-tracker stack (Next.js web + BullMQ worker + Postgres + Redis).
-
-## `dev-up.sh` — bring the whole stack up
+`dev.sh` — one script to run the github-tracker dev stack: Postgres + Redis (Docker)
+plus the Next.js web tier (:3000) and the BullMQ worker (managed as background processes).
 
 ```bash
-./scripts/dev-up.sh
+./scripts/dev.sh start            # .env + infra + schema, then web + worker
+./scripts/dev.sh start worker     # one service (brings up infra + schema first)
+./scripts/dev.sh restart worker   # restart one service
+./scripts/dev.sh stop             # stop everything (web, worker, containers)
+./scripts/dev.sh stop web         # stop one service
+./scripts/dev.sh status           # what's up
+./scripts/dev.sh logs worker      # follow a service log (Ctrl-C to stop following)
 ```
 
-1. Creates `.env` from `.env.example` if missing, and generates the two locally-derived
-   secrets `AUTH_SECRET` and `TOKEN_ENCRYPTION_KEY` (32 random bytes each).
-2. Starts Postgres + Redis in Docker (containers `gt-pg`, `gt-redis`) and waits for them.
-3. Installs deps if `node_modules` is missing, then syncs the Prisma schema (`prisma db push`).
-4. Runs the web tier (http://localhost:3000) and the worker. **Ctrl-C stops both.**
+**Targets:** `all` (default) · `web` · `worker` · `db` · `redis` · `infra` (= db + redis).
 
-Before you can **sign in / generate AI summaries**, fill three values in `.env`
-(the script prints a reminder if they're blank):
+What `start` does, idempotently:
+1. Creates `.env` from `.env.example` if missing and generates the two local secrets
+   (`AUTH_SECRET`, `TOKEN_ENCRYPTION_KEY`).
+2. Starts Postgres + Redis (`gt-pg`, `gt-redis`) and waits for them.
+3. Syncs the Prisma schema (`prisma db push`).
+4. Launches web + worker in the background; logs + pidfiles live in `.dev/` (gitignored).
+
+`stop` kills the background processes and (for `all`/`infra`/`db`/`redis`) removes the
+containers. No named volume, so stopping the DB resets it — the next `start` re-creates the
+schema.
+
+## Before sign-in
+
+Fill three values in `.env` (the script reminds you each run while they're blank):
 
 | Var | Where |
 |-----|-------|
-| `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | A GitHub **OAuth App** — https://github.com/settings/developers — callback URL `http://localhost:3000/api/auth/callback/github` |
+| `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | GitHub **OAuth App** — https://github.com/settings/developers — callback `http://localhost:3000/api/auth/callback/github` |
 | `ANTHROPIC_API_KEY` | https://console.anthropic.com |
-
-Set up infra + schema **without** launching the long-running processes (e.g. to run them
-in separate terminals, or in CI):
-
-```bash
-SETUP_ONLY=1 ./scripts/dev-up.sh
-```
-
-## `dev-down.sh` — tear it down
-
-```bash
-./scripts/dev-down.sh
-```
-
-Stops the web/worker processes and removes the `gt-pg` / `gt-redis` containers. Your `.env`
-is left alone. (No named volume, so the database resets — `dev-up.sh` re-creates the schema.)
 
 ## First run
 
-Open http://localhost:3000 → **Sign in with GitHub** → on the dashboard click **Refresh now**
-to enqueue your first sync (`discover → sync-repo → compute-stats → summaries`). Watch the
-worker terminal for progress; the dashboard/repos/profile pages populate within a minute or two.
+```bash
+./scripts/dev.sh start
+```
+
+Then open http://localhost:3000 → **Sign in with GitHub** → on the dashboard click
+**Refresh now** to enqueue your first sync (`discover → sync-repo → compute-stats →
+summaries`). Follow progress with `./scripts/dev.sh logs worker`.
