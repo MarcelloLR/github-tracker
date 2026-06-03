@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { fetchJson, FetchError } from "@/lib/api/fetchJson";
+import { Button } from "@/components/ui";
 import SummaryMarkdown from "./SummaryMarkdown";
 import styles from "./DeepDiveButton.module.css";
 
@@ -108,13 +109,13 @@ export default function DeepDiveButton({
   return (
     <div>
       <div className={styles.row}>
-        <button className={styles.button} onClick={start} disabled={running}>
+        <Button variant="primary" onClick={start} disabled={running}>
           {running
             ? "Deep dive running…"
             : existingSummary
               ? "Re-run deep dive"
               : "Deep dive"}
-        </button>
+        </Button>
         {running && (
           <span className={styles.hint}>
             Reading source files and summarizing — this can take a minute.

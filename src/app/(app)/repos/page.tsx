@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { computeMetrics } from "@/lib/metrics/compute";
+import { Badge, EmptyState, PageHeader, Panel } from "@/components/ui";
 import { fmtDate, fmtInt, fmtPercent } from "@/components/repo/format";
 import styles from "@/components/repo/repos.module.css";
 
@@ -58,68 +59,70 @@ export default async function ReposPage() {
 
   return (
     <main>
-      <h1>Repositories</h1>
-      <p className={styles.lede}>
-        {rows.length > 0
-          ? `${rows.length} ${rows.length === 1 ? "repository" : "repositories"} you contribute to.`
-          : "Repos you contribute to will appear here once a sync has run."}
-      </p>
+      <PageHeader
+        title="Repositories"
+        description={
+          rows.length > 0
+            ? `${rows.length} ${rows.length === 1 ? "repository" : "repositories"} you contribute to.`
+            : "Repos you contribute to will appear here once a sync has run."
+        }
+      />
 
       {rows.length === 0 ? (
-        <p className={styles.empty}>
+        <EmptyState>
           No repositories yet. Once the background worker discovers and syncs your
           contributions, they&rsquo;ll show up here with headline metrics.
-        </p>
+        </EmptyState>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Repository</th>
-                <th className={styles.num}>PRs</th>
-                <th className={styles.num}>Merge rate</th>
-                <th className={styles.num}>Reviews</th>
-                <th className={styles.num}>Issues</th>
-                <th className={styles.num}>Commits</th>
-                <th className={styles.num}>Stars</th>
-                <th>Last active</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ link, repo, metrics }) => (
-                <tr key={repo.id}>
-                  <td>
-                    <Link
-                      href={`/repos/${repo.owner}/${repo.name}`}
-                      className={styles.repoLink}
-                    >
-                      {repo.nameWithOwner}
-                    </Link>
-                    <div className={styles.meta}>
-                      {repo.primaryLang && (
-                        <span className={styles.lang}>{repo.primaryLang}</span>
-                      )}
-                      {repo.isPrivate && <span className={styles.badge}>private</span>}
-                      {repo.description && (
-                        <span className={styles.desc}>{repo.description}</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className={styles.num}>
-                    {fmtInt(metrics.prsOpened)}
-                    <span className={styles.subNum}> ({fmtInt(metrics.prsMerged)} merged)</span>
-                  </td>
-                  <td className={styles.num}>{fmtPercent(metrics.mergeRate)}</td>
-                  <td className={styles.num}>{fmtInt(metrics.reviews)}</td>
-                  <td className={styles.num}>{fmtInt(metrics.issuesOpened)}</td>
-                  <td className={styles.num}>{fmtInt(metrics.commits)}</td>
-                  <td className={styles.num}>{fmtInt(repo.stargazers)}</td>
-                  <td>{fmtDate(link.lastContributedAt)}</td>
+        <Panel noBodyPadding>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Repository</th>
+                  <th className={styles.num}>PRs</th>
+                  <th className={styles.num}>Merge rate</th>
+                  <th className={styles.num}>Reviews</th>
+                  <th className={styles.num}>Issues</th>
+                  <th className={styles.num}>Commits</th>
+                  <th className={styles.num}>Stars</th>
+                  <th>Last active</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map(({ link, repo, metrics }) => (
+                  <tr key={repo.id}>
+                    <td>
+                      <Link
+                        href={`/repos/${repo.owner}/${repo.name}`}
+                        className={styles.repoLink}
+                      >
+                        {repo.nameWithOwner}
+                      </Link>
+                      <div className={styles.meta}>
+                        {repo.primaryLang && <Badge>{repo.primaryLang}</Badge>}
+                        {repo.isPrivate && <Badge tone="warn">Private</Badge>}
+                        {repo.description && (
+                          <span className={styles.desc}>{repo.description}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className={`${styles.num} tnum`}>
+                      {fmtInt(metrics.prsOpened)}
+                      <span className={styles.subNum}> ({fmtInt(metrics.prsMerged)} merged)</span>
+                    </td>
+                    <td className={`${styles.num} tnum`}>{fmtPercent(metrics.mergeRate)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.reviews)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.issuesOpened)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(metrics.commits)}</td>
+                    <td className={`${styles.num} tnum`}>{fmtInt(repo.stargazers)}</td>
+                    <td className={styles.lastActive}>{fmtDate(link.lastContributedAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
       )}
     </main>
   );

@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { CONTRIB_SERIES, CHART_THEME } from "@/lib/chart";
 
 export interface TimelinePoint {
   /** ISO date string (UTC day bucket). */
@@ -20,13 +21,6 @@ export interface TimelinePoint {
   commits: number;
 }
 
-const SERIES: { key: keyof Omit<TimelinePoint, "date">; label: string; color: string }[] = [
-  { key: "prs", label: "PRs", color: "#6366f1" },
-  { key: "reviews", label: "Reviews", color: "#10b981" },
-  { key: "issues", label: "Issues", color: "#f59e0b" },
-  { key: "commits", label: "Commits", color: "#ef4444" },
-];
-
 function fmtDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -35,12 +29,13 @@ function fmtDate(iso: string): string {
 /**
  * Stacked-area contribution timeline. Data is pre-computed on the server
  * (from StatSnapshot REPO scope or aggregated Contributions) — this component
- * only renders; it never touches the network.
+ * only renders; it never touches the network. Colors come from the shared
+ * CONTRIB_SERIES palette so series read the same as the dashboard chart.
  */
 export default function ContributionTimelineChart({ data }: { data: TimelinePoint[] }) {
   if (data.length === 0) {
     return (
-      <p style={{ opacity: 0.6, fontStyle: "italic" }}>
+      <p style={{ color: "var(--muted-fg)", fontStyle: "italic", margin: 0 }}>
         No contribution activity recorded yet.
       </p>
     );
@@ -50,17 +45,39 @@ export default function ContributionTimelineChart({ data }: { data: TimelinePoin
     <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={CHART_THEME.grid}
+            vertical={false}
+          />
           <XAxis
             dataKey="date"
             tickFormatter={fmtDate}
             minTickGap={24}
-            fontSize={12}
+            tick={{ fontSize: 12, fill: CHART_THEME.axis }}
+            tickLine={false}
+            axisLine={{ stroke: CHART_THEME.axisLine }}
           />
-          <YAxis allowDecimals={false} fontSize={12} />
-          <Tooltip labelFormatter={(v) => fmtDate(String(v))} />
-          <Legend />
-          {SERIES.map((s) => (
+          <YAxis
+            allowDecimals={false}
+            tick={{ fontSize: 12, fill: CHART_THEME.axis }}
+            tickLine={false}
+            axisLine={{ stroke: CHART_THEME.axisLine }}
+          />
+          <Tooltip
+            labelFormatter={(v) => fmtDate(String(v))}
+            contentStyle={{
+              fontSize: 12,
+              borderRadius: 8,
+              background: CHART_THEME.tooltipBg,
+              border: `1px solid ${CHART_THEME.tooltipBorder}`,
+              color: CHART_THEME.tooltipText,
+            }}
+            labelStyle={{ color: CHART_THEME.tooltipText }}
+            itemStyle={{ color: CHART_THEME.tooltipText }}
+          />
+          <Legend wrapperStyle={{ fontSize: 12, color: CHART_THEME.axis }} />
+          {CONTRIB_SERIES.map((s) => (
             <Area
               key={s.key}
               type="monotone"

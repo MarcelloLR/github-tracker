@@ -1,4 +1,4 @@
-import styles from "./MetricCards.module.css";
+import { StatCard, StatGrid } from "@/components/ui";
 
 export interface MetricItem {
   label: string;
@@ -9,14 +9,10 @@ export interface MetricItem {
 /** Responsive grid of headline metric tiles. Presentational only. */
 export default function MetricCards({ items }: { items: MetricItem[] }) {
   return (
-    <div className={styles.grid}>
+    <StatGrid>
       {items.map((m) => (
-        <div key={m.label} className={styles.card}>
-          <div className={styles.value}>{m.value}</div>
-          <div className={styles.label}>{m.label}</div>
-          {m.sub && <div className={styles.sub}>{m.sub}</div>}
-        </div>
+        <StatCard key={m.label} value={m.value} label={m.label} sub={m.sub} />
       ))}
-    </div>
+    </StatGrid>
   );
 }
