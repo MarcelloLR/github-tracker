@@ -121,7 +121,7 @@ stop_proc() { # name  pkill-pattern
   rm -f "$DEV_DIR/$name.pid"
 }
 start_web()    { ensure_env; start_db; start_redis; ensure_schema; start_proc web "Ready in" npm run dev; log "web -> http://localhost:3000"; }
-start_worker() { ensure_env; start_db; start_redis; ensure_schema; start_proc worker "\[worker\] started" npm run worker; }
+start_worker() { ensure_env; start_db; start_redis; ensure_schema; start_proc worker "worker.started" npm run worker; }
 stop_web()     { stop_proc web "next dev"; }
 stop_worker()  { stop_proc worker "tsx watch src/worker/index.ts"; }
 
@@ -150,7 +150,7 @@ start_target() {
   case "$1" in
     all)    ensure_env; start_db; start_redis; ensure_schema
             start_proc web "Ready in" npm run dev
-            start_proc worker "\[worker\] started" npm run worker
+            start_proc worker "worker.started" npm run worker
             log "web -> http://localhost:3000" ;;
     web)    start_web ;;
     worker) start_worker ;;
