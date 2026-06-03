@@ -1,5 +1,5 @@
 import type { Metrics } from "@/lib/metrics/compute";
-import styles from "./dashboard.module.css";
+import { StatCard, StatGrid } from "@/components/ui";
 
 /** Human-friendly seconds → "2.3d" / "5h" / "12m". */
 function fmtDuration(sec: number | null): string {
@@ -36,13 +36,10 @@ export default function MetricCards({ metrics }: { metrics: Metrics }) {
   ];
 
   return (
-    <div className={styles.metricGrid}>
+    <StatGrid>
       {cards.map((c) => (
-        <div key={c.label} className={styles.metricCard}>
-          <div className={styles.metricValue}>{c.value}</div>
-          <div className={styles.metricLabel}>{c.label}</div>
-        </div>
+        <StatCard key={c.label} value={c.value} label={c.label} />
       ))}
-    </div>
+    </StatGrid>
   );
 }

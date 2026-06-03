@@ -10,6 +10,7 @@ import Streaks from "@/components/dashboard/Streaks";
 import Goals from "@/components/dashboard/Goals";
 import TopList, { type TopItem } from "@/components/dashboard/TopList";
 import RefreshButton from "@/components/dashboard/RefreshButton";
+import { EmptyState, PageHeader, Panel } from "@/components/ui";
 import styles from "@/components/dashboard/dashboard.module.css";
 import {
   activeDatesFromSnapshots,
@@ -149,65 +150,56 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <div className={styles.sectionHeader}>
-        <h1 className={styles.sectionTitle} style={{ fontSize: "1.5rem" }}>
-          Dashboard
-        </h1>
-        <RefreshButton lastSyncedAt={formatSyncedAt(syncState?.lastIncrSyncAt ?? null)} />
-      </div>
+      <PageHeader
+        title="Dashboard"
+        actions={
+          <RefreshButton lastSyncedAt={formatSyncedAt(syncState?.lastIncrSyncAt ?? null)} />
+        }
+      />
 
       {!hasAnyData ? (
-        <div className={styles.empty}>
+        <EmptyState className={styles.pageEmpty}>
           No contributions synced yet. Hit <strong>Refresh now</strong> to pull your
           GitHub activity — the dashboard fills in once the sync completes.
-        </div>
+        </EmptyState>
       ) : null}
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Headline metrics</h2>
+      <div className={styles.sections}>
         <MetricCards metrics={metrics} />
-      </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Contribution calendar</h2>
+        <Panel title="Contribution calendar">
+          {heatmap.length ? (
+            <CalendarHeatmap data={heatmap} />
+          ) : (
+            <EmptyState>No daily activity recorded for the last year yet.</EmptyState>
+          )}
+        </Panel>
+
+        <Panel title="Weekly trend">
+          {trend.length ? (
+            <ContributionChart data={trend} />
+          ) : (
+            <EmptyState>Trend chart appears once daily stats are computed.</EmptyState>
+          )}
+        </Panel>
+
+        <div className={styles.twoCol}>
+          <Panel title="Active streak">
+            <Streaks current={streaks.current} longest={streaks.longest} />
+          </Panel>
+          <Panel title="Goals">
+            <Goals goals={goalProgress} />
+          </Panel>
         </div>
-        {heatmap.length ? (
-          <CalendarHeatmap data={heatmap} />
-        ) : (
-          <div className={styles.empty}>No daily activity recorded for the last year yet.</div>
-        )}
-      </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Weekly trend</h2>
-        {trend.length ? (
-          <ContributionChart data={trend} />
-        ) : (
-          <div className={styles.empty}>Trend chart appears once daily stats are computed.</div>
-        )}
-      </section>
-
-      <div className={styles.twoCol}>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Active streak</h2>
-          <Streaks current={streaks.current} longest={streaks.longest} />
-        </section>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Goals</h2>
-          <Goals goals={goalProgress} />
-        </section>
-      </div>
-
-      <div className={styles.twoCol}>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Top repositories</h2>
-          <TopList items={topRepos} emptyLabel="No contributed repositories yet." />
-        </section>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Top organizations</h2>
-          <TopList items={topOrgs} emptyLabel="No organizations yet." />
-        </section>
+        <div className={styles.twoCol}>
+          <Panel title="Top repositories">
+            <TopList items={topRepos} emptyLabel="No contributed repositories yet." />
+          </Panel>
+          <Panel title="Top organizations">
+            <TopList items={topOrgs} emptyLabel="No organizations yet." />
+          </Panel>
+        </div>
       </div>
     </main>
   );

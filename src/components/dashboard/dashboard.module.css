@@ -1,78 +1,145 @@
-/* Shared styling for dashboard + profile UI building blocks. */
+/* Dashboard-specific styling. Surfaces/sections/metric cards come from the
+ * shared UI primitives (Panel, StatCard, PageHeader, EmptyState, Button); this
+ * file only styles the bits those primitives don't cover. All colors/borders
+ * resolve to design tokens. */
 
-.section {
-  margin: 2rem 0;
-}
+/* Page layout ------------------------------------------------------------ */
 
-.sectionHeader {
+.sections {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.sectionTitle {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin: 0;
+.pageEmpty {
+  margin-bottom: 1.25rem;
 }
 
-.muted {
-  opacity: 0.6;
-  font-size: 0.85rem;
-}
+/* Two-column layout ------------------------------------------------------ */
 
-/* Headline metric cards -------------------------------------------------- */
-
-.metricGrid {
+.twoCol {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
 }
 
-.metricCard {
-  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  background: color-mix(in srgb, currentColor 3%, transparent);
+@media (max-width: 720px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
 }
 
-.metricValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.1;
+/* Streak big stats ------------------------------------------------------- */
+
+.statRow {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
 }
 
-.metricLabel {
-  font-size: 0.78rem;
-  opacity: 0.65;
-  margin-top: 0.2rem;
+.bigStat {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Generic card / panel --------------------------------------------------- */
-
-.card {
-  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
+.bigStatValue {
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
-.cardRow {
+.bigStatLabel {
+  font-size: 0.8rem;
+  color: var(--muted-fg);
+  margin-top: 0.3rem;
+}
+
+/* Goals ------------------------------------------------------------------ */
+
+.goalList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  gap: 1rem;
+}
+
+.goalPeriod {
+  color: var(--faint-fg);
+}
+
+.goalMet {
+  font-weight: 600;
+  color: var(--success);
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.progressFillMet {
+  background: var(--success);
+}
+
+/* Top repos / orgs lists ------------------------------------------------- */
+
+.topList {
+  list-style: none;
+  margin: -0.35rem 0;
+  padding: 0;
+}
+
+.topRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.topRow:last-child {
+  border-bottom: none;
+}
+
+.topLink {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.45rem 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  padding: 0.6rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
 }
 
-.cardRow:last-child {
-  border-bottom: none;
+.topLink:hover {
+  background: var(--card-hover);
 }
 
 .rowMain {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .rowName {
@@ -84,88 +151,16 @@
 
 .rowSub {
   font-size: 0.78rem;
-  opacity: 0.6;
+  color: var(--faint-fg);
 }
 
 .rowCount {
-  font-variant-numeric: tabular-nums;
   font-weight: 600;
+  color: var(--muted-fg);
   white-space: nowrap;
 }
 
-/* Two-column layout ------------------------------------------------------ */
-
-.twoCol {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .twoCol {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Streak + goal pills ---------------------------------------------------- */
-
-.statRow {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.bigStat {
-  display: flex;
-  flex-direction: column;
-}
-
-.bigStatValue {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.bigStatLabel {
-  font-size: 0.8rem;
-  opacity: 0.65;
-  margin-top: 0.25rem;
-}
-
-.goal {
-  margin: 0.6rem 0;
-}
-
-.goalHeader {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-bottom: 0.3rem;
-}
-
-.goalMet {
-  font-weight: 600;
-}
-
-.progressTrack {
-  height: 8px;
-  border-radius: 4px;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  border-radius: 4px;
-  background: #2da44e;
-  transition: width 0.3s ease;
-}
-
-.progressFillMet {
-  background: #1f883d;
-}
-
-/* Refresh button --------------------------------------------------------- */
+/* Refresh control -------------------------------------------------------- */
 
 .refreshBar {
   display: flex;
@@ -173,40 +168,14 @@
   gap: 0.75rem;
 }
 
-.refreshBtn {
-  font: inherit;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  background: color-mix(in srgb, currentColor 5%, transparent);
-  cursor: pointer;
-}
-
-.refreshBtn:disabled {
-  opacity: 0.55;
-  cursor: progress;
-}
-
 .refreshStatus {
   font-size: 0.82rem;
-  opacity: 0.7;
+  color: var(--muted-fg);
 }
 
 .refreshError {
   font-size: 0.82rem;
-  color: #cf222e;
-}
-
-/* Empty states ----------------------------------------------------------- */
-
-.empty {
-  border: 1px dashed color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: 10px;
-  padding: 1.5rem;
-  text-align: center;
-  opacity: 0.75;
-  font-size: 0.9rem;
+  color: var(--danger);
 }
 
 /* Calendar heatmap ------------------------------------------------------- */
@@ -214,6 +183,7 @@
 .heatmapWrap {
   overflow-x: auto;
   padding-bottom: 0.25rem;
+  color: var(--foreground);
 }
 
 .heatmapLegend {
@@ -221,8 +191,8 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.75rem;
-  opacity: 0.7;
-  margin-top: 0.5rem;
+  color: var(--muted-fg);
+  margin-top: 0.6rem;
 }
 
 .legendSwatch {
@@ -235,6 +205,7 @@
 
 .markdown {
   line-height: 1.6;
+  color: var(--foreground);
 }
 
 .markdown h1,
@@ -242,6 +213,7 @@
 .markdown h3 {
   margin: 1.2rem 0 0.5rem;
   line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .markdown h1 {
@@ -258,23 +230,31 @@
 
 .markdown p {
   margin: 0.6rem 0;
+  color: var(--muted-fg);
 }
 
 .markdown ul {
   margin: 0.6rem 0;
   padding-left: 1.3rem;
+  color: var(--muted-fg);
 }
 
 .markdown li {
   margin: 0.2rem 0;
 }
 
+.markdown strong {
+  color: var(--foreground);
+}
+
 .markdown code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: 0.9em;
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  color: var(--foreground);
   padding: 0.1em 0.35em;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .highlights {

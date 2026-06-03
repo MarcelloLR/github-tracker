@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { fetchJson, FetchError } from "@/lib/api/fetchJson";
+import { Button } from "@/components/ui";
 import styles from "./dashboard.module.css";
 
 type Phase = "idle" | "starting" | "syncing" | "done" | "error";
@@ -102,14 +103,14 @@ export default function RefreshButton({
 
   return (
     <div className={styles.refreshBar}>
-      <button
-        type="button"
-        className={styles.refreshBtn}
+      <Button
+        variant="primary"
+        size="sm"
         onClick={onClick}
         disabled={busy}
       >
         {busy ? "Refreshing…" : "Refresh now"}
-      </button>
+      </Button>
       {message ? (
         <span className={phase === "error" ? styles.refreshError : styles.refreshStatus}>
           {message}

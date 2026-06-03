@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/components/ui";
 import styles from "./dashboard.module.css";
 
 export interface TopItem {
@@ -18,24 +19,24 @@ export default function TopList({
   emptyLabel: string;
 }) {
   if (items.length === 0) {
-    return <div className={styles.empty}>{emptyLabel}</div>;
+    return <EmptyState>{emptyLabel}</EmptyState>;
   }
 
   return (
-    <div className={styles.card}>
+    <ul className={styles.topList}>
       {items.map((it) => (
-        <div key={it.key} className={styles.cardRow}>
-          <div className={styles.rowMain}>
-            <div className={styles.rowName}>
-              <Link href={it.href}>{it.name}</Link>
-            </div>
-            {it.sub ? <div className={styles.rowSub}>{it.sub}</div> : null}
-          </div>
-          <div className={styles.rowCount}>
-            {it.count.toLocaleString("en-US")}
-          </div>
-        </div>
+        <li key={it.key} className={styles.topRow}>
+          <Link href={it.href} className={styles.topLink}>
+            <span className={styles.rowMain}>
+              <span className={styles.rowName}>{it.name}</span>
+              {it.sub ? <span className={styles.rowSub}>{it.sub}</span> : null}
+            </span>
+            <span className={`${styles.rowCount} tnum`}>
+              {it.count.toLocaleString("en-US")}
+            </span>
+          </Link>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
